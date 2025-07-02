@@ -21,8 +21,14 @@ RUN set -eux; \
     # Clone the requested tag (shallow) and build
     git clone --depth 1 --branch ${LC0_VERSION} https://github.com/LeelaChessZero/lc0.git /tmp/lc0; \
     mkdir /tmp/lc0/build; \
-    meson setup /tmp/lc0/build /tmp/lc0 --buildtype=release -Dgtest=false -Dbackend=blas; \
-    meson compile -C /tmp/lc0/build; \
+    meson setup /tmp/lc0/build /tmp/lc0 \
+        --buildtype=release \
+        -Dgtest=false \
+        -Dbackend=blas; \
+    # Build just the `lc0` binary using at most two parallel jobs.  Limiting the
+    # job count keeps peak RAM well below the 2 GB limit of standard Render
+    # builders so the step no longer OOM-kills or times-out.
+    meson compile -C /tmp/lc0/build -j 2 lc0; \
     install -m 755 /tmp/lc0/build/lc0 /usr/local/bin/; \
     strip /usr/local/bin/lc0 || true; \
     # Clean up build chain and sources to slim the image

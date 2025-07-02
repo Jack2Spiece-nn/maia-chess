@@ -16,7 +16,7 @@ export default defineConfig({
   preview: {
     host: true,
     port: 4173,
-    allowedHosts: ['.onrender.com', 'localhost']
+    allowedHosts: ['.onrender.com', 'localhost', 'maia-chess-frontend.onrender.com']
   },
   build: {
     outDir: 'dist',
