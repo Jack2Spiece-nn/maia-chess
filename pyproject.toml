@@ -16,7 +16,7 @@ target-version = "py310"
 exclude = [
     "node_modules",
     "frontend",
-    "\.venv",
+    ".venv",
 ]
 select = ["E", "F", "I", "B"]
 ignore = ["E501"]
