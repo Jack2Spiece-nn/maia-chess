@@ -8,3 +8,8 @@ protobuf
 tensorboardx
 seaborn
 matplotlib
+flask
+flask-cors
+gunicorn
+pandas
+pytest

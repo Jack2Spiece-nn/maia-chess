@@ -1,6 +1,11 @@
 # Use Python 3.11 slim image as base
 FROM python:3.11-slim
 
+# Install lc0 engine (Leela Chess Zero)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends lc0 \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set working directory
 WORKDIR /app
 
