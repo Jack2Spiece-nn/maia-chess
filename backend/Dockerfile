@@ -42,13 +42,17 @@ RUN set -eux; \
 WORKDIR /app
 
 # Copy requirements first to leverage Docker cache
-COPY requirements.txt .
+# Since the Dockerfile is in backend/, we need to copy from backend/requirements.txt
+COPY backend/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org -r requirements.txt
 
-# Copy application code
-COPY . .
+# Copy only the backend directory contents
+COPY backend/ .
+
+# Copy the model weights from the root directory
+COPY maia_weights/ ./maia_weights/
 
 # Expose port 5000
 EXPOSE 5000
