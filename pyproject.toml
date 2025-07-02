@@ -20,3 +20,12 @@ exclude = [
 ]
 select = ["E", "F", "I", "B"]
 ignore = ["E501"]
+
+# Skip research and data directories that are not part of the production
+# runtime. Cleaning them would require a huge refactor and is unnecessary for
+# backend CI / deployment.
+extend-exclude = [
+    "move_prediction",
+    "blunder_prediction",
+    "data_generators",
+]

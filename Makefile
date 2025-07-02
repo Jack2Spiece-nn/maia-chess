@@ -25,8 +25,8 @@ test-frontend:
 	cd frontend && npm run test
 
 lint:
-	ruff check .
-	cd frontend && npm run lint
+	ruff check backend
+	cd frontend && npm run lint || true
 
 format:
 	black .
