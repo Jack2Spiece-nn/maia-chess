@@ -11,10 +11,12 @@ import subprocess
 from functools import lru_cache
 
 # TensorFlow is optional for future upgrades – import but don't fail hard.
-try:
-    import tensorflow as tf  # type: ignore  # noqa: F401
-except Exception:  # pragma: no cover
-    pass
+# Note: TensorFlow is currently not used, so we're commenting it out to avoid
+# the initialization overhead that causes Gunicorn worker timeouts
+# try:
+#     import tensorflow as tf  # type: ignore  # noqa: F401
+# except Exception:  # pragma: no cover
+#     pass
 
 import chess
 import chess.engine  # type: ignore
