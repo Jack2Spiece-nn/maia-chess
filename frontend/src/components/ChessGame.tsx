@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { useChessGame } from '../hooks/useChessGame';
 import { useDeviceType } from '../hooks/useDeviceType';
@@ -36,32 +36,39 @@ export const ChessGame: React.FC = () => {
     const targetPiece = gameState.chess.get(targetSquare as any);
     const isCapture = targetPiece !== null;
 
-    const moveResult = makeMove(sourceSquare, targetSquare);
-    
-    if (moveResult) {
-      // Play appropriate sound
-      if (isCapture) {
-        playSound('capture');
-        setCapturedPiece(true);
-        setTimeout(() => setCapturedPiece(false), 600);
-      } else {
-        playSound('move');
-      }
+    // Make the move synchronously
+    try {
+      const success = makeMove(sourceSquare, targetSquare);
       
-      setLastMove(`${sourceSquare}${targetSquare}`);
-      setTimeout(() => setLastMove(null), 800);
-
-      // Check for check or checkmate after move
-      setTimeout(() => {
-        if (gameState.chess.isCheckmate()) {
-          playSound('checkmate');
-        } else if (gameState.chess.isCheck()) {
-          playSound('check');
+      if (success) {
+        // Play appropriate sound
+        if (isCapture) {
+          playSound('capture');
+          setCapturedPiece(true);
+          setTimeout(() => setCapturedPiece(false), 600);
+        } else {
+          playSound('move');
         }
-      }, 100);
+        
+        setLastMove(`${sourceSquare}${targetSquare}`);
+        setTimeout(() => setLastMove(null), 800);
+
+        // Check for check or checkmate after move
+        setTimeout(() => {
+          if (gameState.chess.isCheckmate()) {
+            playSound('checkmate');
+          } else if (gameState.chess.isCheck()) {
+            playSound('check');
+          }
+        }, 100);
+        
+        return true;
+      }
+    } catch (error) {
+      console.error('Move failed:', error);
     }
 
-    return moveResult;
+    return false;
   };
 
   const handleNewGame = (playerColor: any, aiLevel: number) => {
@@ -164,14 +171,6 @@ export const ChessGame: React.FC = () => {
               customDropSquareStyle={{
                 boxShadow: 'inset 0 0 1px 6px rgba(255,255,255,0.75)'
               }}
-              customPremoveOriginDotStyle={{
-                backgroundColor: '#4ecdc4',
-                borderRadius: '50%',
-              }}
-              customPremoveDestinationDotStyle={{
-                backgroundColor: '#4ecdc4',
-                borderRadius: '50%',
-              }}
               {...(boardSize && { boardWidth: boardSize })}
             />
           </div>
@@ -192,7 +191,7 @@ export const ChessGame: React.FC = () => {
       {/* Game Controls & Info */}
       <div className={clsx(
         "space-y-4",
-        isMobileLayout ? "order-2 px-2 pb-safe-bottom" : ""
+        isMobileLayout ? "order-2 px-2 pb-4" : ""
       )}>
         {/* Mobile Optimized Controls */}
         {isMobileLayout ? (

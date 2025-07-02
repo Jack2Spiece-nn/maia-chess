@@ -1,75 +1,59 @@
-import { useCallback, useRef, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 interface SoundConfig {
   volume: number;
   enabled: boolean;
 }
 
-interface ChessSounds {
-  move: string;
-  capture: string;
-  check: string;
-  checkmate: string;
-  gameStart: string;
-  gameEnd: string;
-  buttonClick: string;
-  notification: string;
-}
-
-const soundUrls: ChessSounds = {
-  move: 'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmglBkeKz/LLdCcHKobN8dWRQAkUXrPq66xWHAfX2O3KdCgEJ4HR8dmLOgkXV6vj66ZVFAx',
-  capture: 'data:audio/wav;base64,UklGRuAGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YbwGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmglBkeKz/LLdCcHKobN8dWRQAkUXrPq66xWHAc1k9n1u2YdBSJ+y/LRfS0GLHzM8dyTRAwRYbbr7KpWHApOn+PxxGsgBzuM0/LNdSUELIDP8tmLOgkXV6vj66ZVFAw',
-  check: 'data:audio/wav;base64,UklGRuoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YcYGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmglBkeKz/LLdCcHKobN8dWRQAkUXrPq66xWHAePs9b1vGMcBBl2xe/XgjMKL3zB8NmDOQkZVK7k7K1VEgxDn+LvwWckBzuI0fPQdyoGJoLM8NWHPQgVY7Xr7atXGQpNn+LvwWggCDaP1PLRdSgGJ4LM8NWHPQgVY7Xr7atXGQpNn+LvwWggCDaP1PLRdSgGJ4LM8NWHPQgVY7Xr7atXGQo',
-  checkmate: 'data:audio/wav;base64,UklGRvQGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YdAGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmglBkeKz/LLdCcHKobN8dWRQAkUXrPq66xWHAc1k9n1u2YdBSJ+y/LRfS0GLHzM8dyTRAwRYbbr7KpWHApOn+PxxGsgBzuM0/LNdSUELIDP8tmLOgkXV6vj66ZVFAw1k9n1u2YdBSJ+y/LRfS0GLHzM8dyTRAwRYbbr7KpWHApOn+PxxGsgBzuM0/LNdSUELIDP8tmLOgkXV6vj66ZVFAw=',
-  gameStart: 'data:audio/wav;base64,UklGRngGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVQGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmglBkeKz/LLdCcHKobN8dWRQAkUXrPq66xWHAc1k9n1u2YdBSJ+y/LRfS0GLHzM8dyTRAwRYbbr7KpWHApOn+PxxGsgBzuM0/LNdSUELIDP8tmLOgkXV6vj66ZVFAwO',
-  gameEnd: 'data:audio/wav;base64,UklGRnQGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YVAGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmglBkeKz/LLdCcHKobN8dWRQAkUXrPq66xWHAc1k9n1u2YdBSJ+y/LRfS0GLHzM8dyTRAwRYbbr7KpWHApOn+PxxGsgBzuM0/LNdSUELIDP8tmLOgkXV6vj66ZVFAw',
-  buttonClick: 'data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUAGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmglBkeKz/LLdCcHKobN8dWRQAkUXrPq66xWHAc1k9n1u2YdBSJ+y/LRfS0GLHzM8dyTRAwRYbbr7KpWHApOn+PxxGsgBzuM0/LNdSUELIDP8tmLOgkXV6vj66ZVFAw',
-  notification: 'data:audio/wav;base64,UklGRmwGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUgGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmglBkeKz/LLdCcHKobN8dWRQAkUXrPq66xWHAc1k9n1u2YdBSJ+y/LRfS0GLHzM8dyTRAwRYbbr7KpWHApOn+PxxGsgBzuM0/LNdSUELIDP8tmLOgkXV6vj66ZVFAwR'
-};
-
 export const useChessSound = () => {
-  const audioRefs = useRef<{ [key in keyof ChessSounds]?: HTMLAudioElement }>({});
   const [config, setConfig] = useState<SoundConfig>({ volume: 0.5, enabled: true });
 
-  useEffect(() => {
-    // Preload all sounds
-    Object.entries(soundUrls).forEach(([key, url]) => {
-      const audio = new Audio(url);
-      audio.volume = config.volume;
-      audioRefs.current[key as keyof ChessSounds] = audio;
-    });
-
-    return () => {
-      // Cleanup
-      Object.values(audioRefs.current).forEach(audio => {
-        if (audio) {
-          audio.pause();
-          audio.currentTime = 0;
-        }
-      });
-    };
-  }, []);
-
-  useEffect(() => {
-    // Update volume for all audio elements
-    Object.values(audioRefs.current).forEach(audio => {
-      if (audio) {
-        audio.volume = config.volume;
-      }
-    });
-  }, [config.volume]);
-
-  const playSound = useCallback((soundType: keyof ChessSounds) => {
+  const playSound = useCallback((soundType: string) => {
     if (!config.enabled) return;
 
-    const audio = audioRefs.current[soundType];
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play().catch(() => {
-        // Ignore play errors (e.g., user hasn't interacted with page yet)
-      });
+    // Simple sound using Web Audio API or basic audio feedback
+    try {
+      // For now, we'll use a simple beep sound that works across browsers
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Different frequencies for different sound types
+      let frequency = 440; // Default A note
+      switch (soundType) {
+        case 'move':
+          frequency = 523; // C note
+          break;
+        case 'capture':
+          frequency = 659; // E note
+          break;
+        case 'check':
+          frequency = 784; // G note
+          break;
+        case 'checkmate':
+          frequency = 1047; // High C note
+          break;
+        default:
+          frequency = 440;
+      }
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = 'sine';
+      
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(config.volume * 0.1, audioContext.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.2);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.2);
+    } catch (error) {
+      // Fallback: silent operation if audio isn't available
+      console.log('Audio not available');
     }
-  }, [config.enabled]);
+  }, [config.enabled, config.volume]);
 
   const setVolume = useCallback((volume: number) => {
     setConfig(prev => ({ ...prev, volume: Math.max(0, Math.min(1, volume)) }));

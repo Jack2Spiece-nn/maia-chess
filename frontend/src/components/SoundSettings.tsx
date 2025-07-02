@@ -1,5 +1,4 @@
 import React from 'react';
-import { Volume2, VolumeX, Settings } from 'lucide-react';
 import { useChessSound } from '../hooks/useSound';
 
 export const SoundSettings: React.FC = () => {
@@ -8,7 +7,7 @@ export const SoundSettings: React.FC = () => {
   return (
     <div className="game-panel space-y-4">
       <h3 className="text-lg font-semibold text-white flex items-center space-x-2">
-        <Settings className="w-5 h-5" />
+        <span>🔊</span>
         <span>Sound Settings</span>
       </h3>
 
@@ -37,11 +36,7 @@ export const SoundSettings: React.FC = () => {
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Volume</span>
             <div className="flex items-center space-x-2">
-              {enabled ? (
-                <Volume2 className="w-4 h-4 text-gray-600" />
-              ) : (
-                <VolumeX className="w-4 h-4 text-gray-400" />
-              )}
+              <span>{enabled ? '🔊' : '🔇'}</span>
               <span className="text-xs text-gray-500 w-8 text-center">
                 {Math.round(volume * 100)}%
               </span>

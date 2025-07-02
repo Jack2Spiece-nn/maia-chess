@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GameState, PlayerColor } from '../types/game';
-import { Play, Square, Flag, RotateCcw, Palette, Zap } from 'lucide-react';
+import { Play, Square, Flag, Palette, Zap } from 'lucide-react';
 import { useDeviceType } from '../hooks/useDeviceType';
 import { useChessSound } from '../hooks/useSound';
 import { clsx } from 'clsx';
@@ -17,7 +17,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
   onResign,
 }) => {
   const [showNewGameOptions, setShowNewGameOptions] = useState(false);
-  const { isMobile, isTouch } = useDeviceType();
+  const { isMobile } = useDeviceType();
   const { playSound } = useChessSound();
 
   const handleNewGame = (color: PlayerColor) => {
