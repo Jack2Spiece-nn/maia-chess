@@ -5,6 +5,7 @@
 The TensorFlow compatibility issues have been resolved:
 
 - ✅ **Updated to `tensorflow-cpu==2.12.0`** (compatible with cloud deployment)
+- ✅ **Fixed numpy version** to `1.23.5` (compatible with TensorFlow 2.12.0)
 - ✅ **Fixed protobuf version** to `3.20.3` (compatible with TensorFlow 2.12.0)
 - ✅ **Updated Python runtime** to `3.10.12` (stable and compatible)
 - ✅ **Optimized Render configuration** with proper timeout and workers settings
