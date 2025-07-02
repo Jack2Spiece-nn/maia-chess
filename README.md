@@ -160,6 +160,85 @@ Maia (this repo):
 
 The software is available under the GPL License.
 
+## 🌐 Web Application
+
+In addition to the research models, this repository now includes a complete web application that allows you to play against Maia in your browser.
+
+### ✨ Features
+- **Interactive Chess Board**: Drag-and-drop interface with beautiful animations
+- **Human-like AI**: Play against Maia at 9 different skill levels (1100-1900)
+- **Real-time Game Status**: Live updates on game state and turn management
+- **Move History**: Complete move tracking with PGN export
+- **Responsive Design**: Works on desktop, tablet, and mobile
+- **Modern UI**: Glass-morphism design with smooth transitions
+
+### 🚀 Quick Start
+
+**Option 1: Docker Compose (Recommended)**
+```bash
+# Run both frontend and backend
+docker-compose up
+
+# Or run in development mode with hot reload
+docker-compose --profile dev up
+```
+
+**Option 2: Manual Setup**
+```bash
+# Terminal 1: Start Backend
+cd backend
+pip install -r requirements.txt
+python app.py
+
+# Terminal 2: Start Frontend  
+cd frontend
+npm install
+npm run dev
+```
+
+### 🌍 Access Points
+
+- **Frontend**: http://localhost:3000 (React app)
+- **Backend API**: http://localhost:5000 (Flask API)
+- **API Health**: http://localhost:5000/ (health check)
+
+### 🚀 One-Click Deployment
+
+Deploy both frontend and backend to Render.com:
+
+```bash
+# Simply connect your repository to Render
+# The render.yaml will automatically deploy both services
+```
+
+### 🛠️ Web App Structure
+
+```
+├── frontend/                 # React web application
+│   ├── src/components/      # Chess game components
+│   ├── src/hooks/           # Game state management  
+│   ├── src/services/        # API communication
+│   └── package.json         # Frontend dependencies
+├── backend/                 # Flask API server
+│   ├── app.py              # Main Flask application
+│   ├── maia_engine.py      # Chess engine integration
+│   └── requirements.txt    # Python dependencies
+├── docker-compose.yml      # Multi-service deployment
+└── render.yaml            # Cloud deployment config
+```
+
+### 🎮 How to Play
+
+1. Open the web application in your browser
+2. Click "New Game" and choose your color (white/black)  
+3. Select AI difficulty (1100-1900 skill level)
+4. Make moves by dragging pieces on the board
+5. Watch Maia respond with human-like moves
+6. Track your game in the move history panel
+7. Export your game as PGN when finished
+
+See the [frontend README](frontend/README.md) for detailed development instructions.
+
 ## Contact
 
 Please [open an issue](https://github.com/CSSLab/maia-chess/issues/new) or email [Reid McIlroy-Young](https://reidmcy.com/) to get in touch

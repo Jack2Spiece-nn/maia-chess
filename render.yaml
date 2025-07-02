@@ -1,4 +1,5 @@
 services:
+  # Backend API Service
   - type: web
     name: maia-chess-backend
     env: python
@@ -9,4 +10,15 @@ services:
         value: production
       - key: FLASK_APP
         value: app.py
+    plan: free
+
+  # Frontend Web Application
+  - type: web
+    name: maia-chess-frontend
+    env: node
+    buildCommand: cd frontend && npm ci && npm run build
+    startCommand: cd frontend && npm run preview -- --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: VITE_API_URL
+        value: https://maia-chess-backend.onrender.com
     plan: free

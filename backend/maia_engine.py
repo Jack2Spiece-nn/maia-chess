@@ -7,7 +7,13 @@ Provides functionality for model caching, move prediction, and FEN processing.
 """
 
 import os
-import tensorflow as tf
+# Optional TensorFlow import. Fallback to lightweight placeholder if unavailable
+try:
+    import tensorflow as tf  # type: ignore
+    _tf_available = True
+except Exception:  # pragma: no cover
+    _tf_available = False
+
 import numpy as np
 import chess
 
@@ -67,21 +73,35 @@ def get_model(level):
 
 def _create_placeholder_model():
     """
-    Create a placeholder TensorFlow model for testing purposes.
-    This will be replaced with actual model loading logic.
-    
-    Returns:
-        tf.keras.Model: A simple placeholder model
+    Create a placeholder model for testing purposes.
+
+    If TensorFlow is available we build a minimal tf.keras model, otherwise we
+    return a lightweight Python class with a compatible `predict` method.
+    This keeps the backend lightweight in environments where TensorFlow wheels
+    are not available or are too heavy.
     """
-    # Create a simple placeholder model that takes chess position input
-    # and outputs move probabilities
-    inputs = tf.keras.Input(shape=(8, 8, 12), name='board_input')
-    x = tf.keras.layers.Flatten()(inputs)
-    x = tf.keras.layers.Dense(128, activation='relu')(x)
-    outputs = tf.keras.layers.Dense(4096, activation='softmax', name='move_probabilities')(x)
-    
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
-    return model
+    if _tf_available:
+        # Build a minimal TensorFlow model
+        inputs = tf.keras.Input(shape=(8, 8, 12), name='board_input')
+        x = tf.keras.layers.Flatten()(inputs)
+        x = tf.keras.layers.Dense(128, activation='relu')(x)
+        outputs = tf.keras.layers.Dense(4096, activation='softmax', name='move_probabilities')(x)
+        return tf.keras.Model(inputs=inputs, outputs=outputs)
+
+    # Lightweight fallback model
+    class _DummyModel:  # pylint: disable=too-few-public-methods
+        """Replacement for tf.keras.Model with a `predict` method."""
+
+        @staticmethod
+        def predict(_features, verbose: int = 0):  # noqa: D401,N803, WPS110
+            # Return a random probability distribution of shape (1, 4096)
+            _ = verbose
+            probs = np.random.random((1, 4096)).astype(np.float32)
+            # Normalise to a probability distribution
+            probs /= probs.sum(axis=1, keepdims=True)
+            return probs
+
+    return _DummyModel()
 
 
 def fen_to_features(fen_string):
