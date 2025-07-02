@@ -21,10 +21,13 @@ RUN set -eux; \
     # Clone the requested tag (shallow) and build
     git clone --depth 1 --branch ${LC0_VERSION} https://github.com/LeelaChessZero/lc0.git /tmp/lc0; \
     mkdir /tmp/lc0/build; \
+    # Note: We removed -Dbackend=blas as it's no longer a valid meson option in LC0 v0.31.2
+    # The BLAS backend will be automatically built when OpenBLAS libraries are detected
     meson setup /tmp/lc0/build /tmp/lc0 \
         --buildtype=release \
         -Dgtest=false \
-        -Dbackend=blas; \
+        -Ddefault_library=static \
+        -Db_lto=false; \
     # Build just the `lc0` binary using at most two parallel jobs.  Limiting the
     # job count keeps peak RAM well below the 2 GB limit of standard Render
     # builders so the step no longer OOM-kills or times-out.
