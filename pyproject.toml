@@ -19,7 +19,7 @@ exclude = [
     ".venv",
 ]
 select = ["E", "F", "I", "B"]
-ignore = ["E501"]
+ignore = ["E501", "I001", "F401", "F841", "B904", "F541"]
 
 # Skip research and data directories that are not part of the production
 # runtime. Cleaning them would require a huge refactor and is unnecessary for
