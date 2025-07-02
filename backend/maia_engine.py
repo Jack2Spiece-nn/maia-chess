@@ -1,0 +1,180 @@
+#!/usr/bin/env python3
+"""
+Maia Chess Engine
+
+Core module for loading and managing Maia chess models.
+Provides functionality for model caching, move prediction, and FEN processing.
+"""
+
+import os
+import tensorflow as tf
+import numpy as np
+import chess
+
+# Global model cache to prevent reloading models on every request
+_model_cache = {}
+
+def get_model(level):
+    """
+    Load and cache a Maia model by skill level.
+    
+    Args:
+        level (int): The skill level of the model (e.g., 1100, 1200, etc.)
+        
+    Returns:
+        tf.keras.Model: The loaded TensorFlow model
+        
+    Raises:
+        FileNotFoundError: If the requested model level doesn't exist
+    """
+    global _model_cache
+    
+    # Check if model is already cached
+    if level in _model_cache:
+        return _model_cache[level]
+    
+    # Construct model path
+    models_dir = os.path.join(os.path.dirname(__file__), '..', 'models')
+    model_file = f"maia-{level}.pb.gz"
+    model_path = os.path.join(models_dir, model_file)
+    
+    # Alternative path - check in maia_weights directory
+    if not os.path.exists(model_path):
+        models_dir = os.path.join(os.path.dirname(__file__), '..', 'maia_weights')
+        model_path = os.path.join(models_dir, model_file)
+    
+    # Check if model file exists
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model file not found for level {level}: {model_path}")
+    
+    try:
+        # Load the TensorFlow model
+        # Note: For .pb.gz files, we need to decompress and load
+        import gzip
+        
+        # For now, we'll create a placeholder model structure
+        # This will be replaced with actual TensorFlow model loading in the next phase
+        model = _create_placeholder_model()
+        
+        # Cache the model
+        _model_cache[level] = model
+        
+        return model
+        
+    except Exception as e:
+        raise RuntimeError(f"Failed to load model for level {level}: {str(e)}")
+
+
+def _create_placeholder_model():
+    """
+    Create a placeholder TensorFlow model for testing purposes.
+    This will be replaced with actual model loading logic.
+    
+    Returns:
+        tf.keras.Model: A simple placeholder model
+    """
+    # Create a simple placeholder model that takes chess position input
+    # and outputs move probabilities
+    inputs = tf.keras.Input(shape=(8, 8, 12), name='board_input')
+    x = tf.keras.layers.Flatten()(inputs)
+    x = tf.keras.layers.Dense(128, activation='relu')(x)
+    outputs = tf.keras.layers.Dense(4096, activation='softmax', name='move_probabilities')(x)
+    
+    model = tf.keras.Model(inputs=inputs, outputs=outputs)
+    return model
+
+
+def fen_to_features(fen_string):
+    """
+    Convert a FEN string to the feature tensor required by the model.
+    
+    This is a placeholder function that will be replaced with the complex
+    data transformation from the original Maia project.
+    
+    Args:
+        fen_string (str): The FEN representation of the chess position
+        
+    Returns:
+        np.ndarray: Feature tensor with shape (8, 8, 12)
+    """
+    # Placeholder implementation - returns random features for now
+    # This will be replaced with the actual FEN to feature conversion
+    # using the logic from move_prediction/maia_chess_backend/fen_to_vec.py
+    
+    # For now, return a random tensor with the expected shape
+    features = np.random.random((8, 8, 12)).astype(np.float32)
+    
+    return features
+
+
+def get_best_move(model, features, legal_moves):
+    """
+    Select the best legal move from the model's output probabilities.
+    
+    This is a placeholder function that will be replaced with the complex
+    move selection logic from the original Maia project.
+    
+    Args:
+        model (tf.keras.Model): The loaded Maia model
+        features (np.ndarray): The position features tensor
+        legal_moves (list): List of legal moves in UCI format
+        
+    Returns:
+        str: The selected move in UCI format
+    """
+    # Placeholder implementation - returns a random legal move for now
+    # This will be replaced with actual model prediction and move selection
+    
+    if not legal_moves:
+        return None
+    
+    # Get model predictions (placeholder)
+    predictions = model.predict(np.expand_dims(features, axis=0), verbose=0)
+    
+    # For now, just return a random legal move
+    # In the actual implementation, this will map the model output probabilities
+    # to specific moves and select the highest probability legal move
+    import random
+    return random.choice(legal_moves)
+
+
+def predict_move(fen_string, level=1500):
+    """
+    Predict the best move for a given position using the specified Maia model.
+    
+    Args:
+        fen_string (str): The FEN representation of the chess position
+        level (int): The skill level of the model to use (default: 1500)
+        
+    Returns:
+        str: The predicted move in UCI format
+        
+    Raises:
+        FileNotFoundError: If the requested model level doesn't exist
+        ValueError: If the FEN string is invalid or position has no legal moves
+    """
+    try:
+        # Validate the FEN string and get legal moves
+        board = chess.Board(fen_string)
+        legal_moves = [move.uci() for move in board.legal_moves]
+        
+        if not legal_moves:
+            raise ValueError("No legal moves available in the given position")
+        
+        # Load the model
+        model = get_model(level)
+        
+        # Convert FEN to features
+        features = fen_to_features(fen_string)
+        
+        # Get the best move
+        best_move = get_best_move(model, features, legal_moves)
+        
+        return best_move
+        
+    except ValueError as ve:
+        # This catches both chess parsing errors and our own ValueError
+        if "Invalid FEN" in str(ve) or "invalid" in str(ve).lower():
+            raise ValueError(f"Invalid FEN string: {fen_string}")
+        else:
+            raise ve
