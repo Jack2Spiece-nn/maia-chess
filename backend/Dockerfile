@@ -1,18 +1,33 @@
 # Use Python 3.11 slim image as base
 FROM python:3.11-slim
 
-# Install lc0 engine (Leela Chess Zero)
-# The Debian/Ubuntu repositories on Render do not currently contain an `lc0`
-# package, so we download a pre-built CPU binary from the official releases.
-# Using a single, self-contained binary keeps the image small and avoids
-# compilation during the build step.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends wget ca-certificates xz-utils \
-    && wget -q https://github.com/LeelaChessZero/lc0/releases/download/v0.31.2/lc0-v0.31.2-linux-cpu.tar.xz \
-    && tar -xJf lc0-v0.31.2-linux-cpu.tar.xz \
-    && mv lc0-v0.31.2-linux-cpu/lc0 /usr/local/bin/ \
-    && chmod +x /usr/local/bin/lc0 \
-    && rm -rf /var/lib/apt/lists/* lc0-v0.31.2-linux-cpu*
+# ---------------------------------------------------------------------------
+# Build and install lc0 (Leela Chess Zero) from source
+# ---------------------------------------------------------------------------
+# Debian does not provide an `lc0` package, and the upstream project no
+# longer ships generic Linux CPU binaries.  We therefore build v0.31.2 from
+# source.  The final image keeps only the lc0 executable and its runtime
+# dependencies (OpenBLAS + libomp), while build-time toolchains are removed
+# to keep the image small.
+
+ARG LC0_VERSION=v0.31.2
+RUN set -eux; \
+    apt-get update; \
+    # Runtime libs we will keep
+    apt-get install -y --no-install-recommends libopenblas0 libomp5 ca-certificates; \
+    # Build toolchain and headers
+    apt-get install -y --no-install-recommends \
+        build-essential git meson ninja-build pkg-config libopenblas-dev libomp-dev; \
+    # Clone the requested tag (shallow) and build
+    git clone --depth 1 --branch ${LC0_VERSION} https://github.com/LeelaChessZero/lc0.git /tmp/lc0; \
+    mkdir /tmp/lc0/build; \
+    meson setup /tmp/lc0/build /tmp/lc0 --buildtype=release -Dgtest=false -Dbackend=blas; \
+    meson compile -C /tmp/lc0/build; \
+    install -m 755 /tmp/lc0/build/lc0 /usr/local/bin/; \
+    strip /usr/local/bin/lc0 || true; \
+    # Clean up build chain and sources to slim the image
+    apt-get purge -y --auto-remove build-essential git meson ninja-build pkg-config libopenblas-dev libomp-dev; \
+    rm -rf /var/lib/apt/lists/* /tmp/lc0
 
 # Set working directory
 WORKDIR /app
