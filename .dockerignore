@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+venv
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.pytest_cache
+
+# Frontend (not needed for backend)
+frontend/
+node_modules/
+
+# Data and models (excluding maia_weights which is needed)
+data_generators/
+blunder_prediction/
+move_prediction/
+
+# Documentation
+*.md
+LICENSE
+CITATION.cff
+images/
+
+# Development files
+docker-compose.yml
+maia_env.yml
+pytest.ini
+project_assessment_report.md
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Render specific
+render.yaml
