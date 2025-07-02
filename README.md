@@ -204,12 +204,40 @@ npm run dev
 
 ### 🚀 One-Click Deployment
 
-Deploy both frontend and backend to Render.com:
+With the included `render.yaml` you can deploy **real Maia** to Render's free tier in one click.
 
-```bash
-# Simply connect your repository to Render
-# The render.yaml will automatically deploy both services
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+
+Render will spin up **two services**:
+
+1. `maia-chess-backend` – Docker service built from `backend/Dockerfile`
+   • Installs the `lc0` engine and loads the proper `maia-<level>.pb.gz` weights.  
+   • Exposes `GET /` (health) and `POST /get_move`.
+2. `maia-chess-frontend` – Static site (Node build) that serves the compiled React app.
+
+Free-plan resource usage
+• Backend: 300 MB image, < 200 MB RAM, cold-start < 3 s  
+• Frontend: static assets on CDN  
+Both sit comfortably inside Render's 512 MB / 750 h-month limits.
+
+After the build finishes you'll have URLs like
+
 ```
+https://maia-chess-backend.onrender.com    # API
+https://maia-chess-frontend.onrender.com   # Web app
+```
+
+The frontend is pre-configured to call the backend via `VITE_API_URL` (set in `render.yaml`).
+
+#### Manual Blueprint deploy steps
+
+1. Fork or push this repo to GitHub.  
+2. Click the "Deploy to Render" button above and grant Render access to the repo.  
+3. Accept the free plan for both services and hit "Apply".  
+4. Wait ~5 min for the first build (TensorFlow & lc0).  
+5. Open the frontend URL and start playing!
+
+**Important:**  If you fork under a *private* account you'll have to update the build-time environment variable `VITE_API_URL` under the frontend service to point to your backend URL (Render shows it after the backend is live).
 
 ### 🛠️ Web App Structure
 
