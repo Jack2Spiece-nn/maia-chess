@@ -23,8 +23,10 @@ import chess.engine  # type: ignore
 
 # Directory that stores the official Maia LC0 weight files shipped with the repo
 _WEIGHTS_DIRS = [
-    os.path.join(os.path.dirname(__file__), "..", "maia_weights"),
-    os.path.join(os.path.dirname(__file__), "..", "models"),
+    os.path.join(os.path.dirname(__file__), "..", "maia_weights"),  # For local development
+    os.path.join(os.path.dirname(__file__), "..", "models"),       # For local development
+    os.path.join(os.path.dirname(__file__), "maia_weights"),       # For Docker deployment
+    os.path.join(os.path.dirname(__file__), "models"),             # For Docker deployment
 ]
 
 # Cache of running lc0 processes keyed by skill level (1100-1900)
