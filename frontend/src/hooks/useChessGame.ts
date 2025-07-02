@@ -89,12 +89,17 @@ export const useChessGame = () => {
     try {
       const response = await apiService.getMove(chess.fen(), gameState.aiLevel);
       
+      // Check if response contains an error
+      if (!response || !response.move) {
+        throw new Error(`AI failed to generate move: ${response ? JSON.stringify(response) : 'No response'}`);
+      }
+      
       // Verify the move is valid
       const aiChess = new Chess(chess.fen());
       const aiMove = aiChess.move(response.move);
       
       if (!aiMove) {
-        throw new Error('AI returned invalid move');
+        throw new Error(`AI returned invalid move: ${response.move}`);
       }
 
       const newStatus = updateGameStatus(aiChess);
@@ -113,7 +118,21 @@ export const useChessGame = () => {
 
     } catch (err) {
       console.error('AI move error:', err);
-      setError(err instanceof Error ? err.message : 'Failed to get AI move');
+      let errorMessage = 'Failed to get AI move';
+      
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      } else if (typeof err === 'object' && err !== null && 'response' in err) {
+        // Axios error with response
+        const axiosErr = err as any;
+        if (axiosErr.response?.data?.error) {
+          errorMessage = `Backend error: ${axiosErr.response.data.error}`;
+        } else {
+          errorMessage = `Network error: ${axiosErr.message || 'Unknown error'}`;
+        }
+      }
+      
+      setError(errorMessage);
       setGameState(prev => ({
         ...prev,
         isThinking: false,
