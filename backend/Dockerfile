@@ -8,11 +8,11 @@ FROM python:3.11-slim
 # compilation during the build step.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends wget ca-certificates xz-utils \
-    && wget -q https://github.com/LeelaChessZero/lc0/releases/download/v0.30.0/lc0-v0.30.0-linux-cpu-avx2.tar.xz \
-    && tar -xJf lc0-v0.30.0-linux-cpu-avx2.tar.xz \
-    && mv lc0-v0.30.0-linux-cpu-avx2/lc0 /usr/local/bin/ \
+    && wget -q https://github.com/LeelaChessZero/lc0/releases/download/v0.31.2/lc0-v0.31.2-linux-cpu.tar.xz \
+    && tar -xJf lc0-v0.31.2-linux-cpu.tar.xz \
+    && mv lc0-v0.31.2-linux-cpu/lc0 /usr/local/bin/ \
     && chmod +x /usr/local/bin/lc0 \
-    && rm -rf /var/lib/apt/lists/* lc0-v0.30.0-linux-cpu-avx2*
+    && rm -rf /var/lib/apt/lists/* lc0-v0.31.2-linux-cpu*
 
 # Set working directory
 WORKDIR /app
