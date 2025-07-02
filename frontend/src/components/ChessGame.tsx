@@ -25,13 +25,23 @@ export const ChessGame: React.FC = () => {
   const { playSound } = useChessSound();
   const [lastMove, setLastMove] = useState<string | null>(null);
   const [capturedPiece, setCapturedPiece] = useState<boolean>(false);
+  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
 
   const onDrop = (sourceSquare: string, targetSquare: string) => {
+    // Clear selection when using drag-drop
+    setSelectedSquare(null);
+    setPossibleMoves([]);
+    
     // Don't allow moves if it's not the player's turn or game is over
     if (!gameState.isPlayerTurn || gameState.gameStatus !== 'playing' || gameState.isThinking) {
       return false;
     }
 
+    return handleMove(sourceSquare, targetSquare);
+  };
+
+  const handleMove = (sourceSquare: string, targetSquare: string) => {
     // Check if this is a capture move
     const targetPiece = gameState.chess.get(targetSquare as any);
     const isCapture = targetPiece !== null;
@@ -81,8 +91,6 @@ export const ChessGame: React.FC = () => {
     playSound('gameEnd');
   };
 
-  const isPlayerWhite = gameState.playerColor === 'white';
-
   // Mobile layout optimization
   const isMobileLayout = isMobile || (isTablet && orientation === 'portrait');
 
@@ -91,6 +99,49 @@ export const ChessGame: React.FC = () => {
     : isTablet 
     ? Math.min(window.innerWidth * 0.6, window.innerHeight - 200)
     : undefined;
+
+  // Handle square clicks for click-to-move functionality
+  const onSquareClick = (square: string) => {
+    // Don't allow moves if it's not the player's turn or game is over
+    if (!gameState.isPlayerTurn || gameState.gameStatus !== 'playing' || gameState.isThinking) {
+      return;
+    }
+
+    const piece = gameState.chess.get(square as any);
+    
+    // If a square is already selected
+    if (selectedSquare) {
+      // If clicking the same square, deselect it
+      if (selectedSquare === square) {
+        setSelectedSquare(null);
+        setPossibleMoves([]);
+        return;
+      }
+      
+      // Try to make a move
+      const success = handleMove(selectedSquare, square);
+      
+      // Clear selection regardless of move success
+      setSelectedSquare(null);
+      setPossibleMoves([]);
+      
+      // If the move failed and we clicked on our own piece, select it
+      if (!success && piece && piece.color === gameState.chess.turn()) {
+        setSelectedSquare(square);
+        // Get possible moves for the selected piece
+        const moves = gameState.chess.moves({ square: square as any, verbose: true });
+        setPossibleMoves(moves.map((m: any) => m.to));
+      }
+    } else {
+      // No square selected yet - select if it's our piece
+      if (piece && piece.color === gameState.chess.turn()) {
+        setSelectedSquare(square);
+        // Get possible moves for the selected piece
+        const moves = gameState.chess.moves({ square: square as any, verbose: true });
+        setPossibleMoves(moves.map((m: any) => m.to));
+      }
+    }
+  };
 
   return (
     <div className={clsx(
@@ -150,11 +201,13 @@ export const ChessGame: React.FC = () => {
             <Chessboard
               position={gameState.chess.fen()}
               onPieceDrop={onDrop}
-              boardOrientation={isPlayerWhite ? 'white' : 'black'}
+              onSquareClick={onSquareClick}
+              boardOrientation={'white'}
               arePiecesDraggable={
                 gameState.isPlayerTurn && 
                 gameState.gameStatus === 'playing' && 
-                !gameState.isThinking
+                !gameState.isThinking &&
+                !isTouch // Disable dragging on touch devices
               }
               customBoardStyle={{
                 borderRadius: '12px',
@@ -162,14 +215,31 @@ export const ChessGame: React.FC = () => {
               }}
               customDarkSquareStyle={{ 
                 backgroundColor: '#b58863',
-                ...(isTouch && { cursor: 'pointer' })
+                cursor: 'pointer'
               }}
               customLightSquareStyle={{ 
                 backgroundColor: '#f0d9b5',
-                ...(isTouch && { cursor: 'pointer' })
+                cursor: 'pointer'
               }}
               customDropSquareStyle={{
                 boxShadow: 'inset 0 0 1px 6px rgba(255,255,255,0.75)'
+              }}
+              customSquareStyles={{
+                ...(selectedSquare && {
+                  [selectedSquare]: {
+                    backgroundColor: 'rgba(255, 255, 0, 0.4)',
+                    border: '2px solid #FFFF00'
+                  }
+                }),
+                ...possibleMoves.reduce((acc, square) => ({
+                  ...acc,
+                  [square]: {
+                    background: gameState.chess.get(square as any) 
+                      ? 'radial-gradient(circle, rgba(255,0,0,0.3) 85%, transparent 85%)'
+                      : 'radial-gradient(circle, rgba(0,0,0,0.2) 25%, transparent 25%)',
+                    cursor: 'pointer'
+                  }
+                }), {})
               }}
               {...(boardSize && { boardWidth: boardSize })}
             />

@@ -11,15 +11,15 @@ interface AiSettingsProps {
 }
 
 const aiLevels = [
-  { level: 1, rating: 1100, description: "Beginner", color: "text-green-400" },
-  { level: 2, rating: 1200, description: "Novice", color: "text-green-400" },
-  { level: 3, rating: 1300, description: "Casual", color: "text-blue-400" },
-  { level: 4, rating: 1400, description: "Amateur", color: "text-blue-400" },
-  { level: 5, rating: 1500, description: "Club Player", color: "text-yellow-400" },
-  { level: 6, rating: 1600, description: "Advanced", color: "text-yellow-400" },
-  { level: 7, rating: 1700, description: "Expert", color: "text-orange-400" },
-  { level: 8, rating: 1800, description: "Master", color: "text-red-400" },
-  { level: 9, rating: 1900, description: "Grandmaster", color: "text-purple-400" },
+  { level: 1, rating: 1100, description: "Beginner", color: "text-green-500" },
+  { level: 2, rating: 1200, description: "Novice", color: "text-green-500" },
+  { level: 3, rating: 1300, description: "Casual", color: "text-blue-500" },
+  { level: 4, rating: 1400, description: "Amateur", color: "text-blue-500" },
+  { level: 5, rating: 1500, description: "Club Player", color: "text-yellow-500" },
+  { level: 6, rating: 1600, description: "Advanced", color: "text-yellow-500" },
+  { level: 7, rating: 1700, description: "Expert", color: "text-orange-500" },
+  { level: 8, rating: 1800, description: "Master", color: "text-red-500" },
+  { level: 9, rating: 1900, description: "Grandmaster", color: "text-purple-500" },
 ];
 
 export const AiSettings: React.FC<AiSettingsProps> = ({
@@ -44,23 +44,23 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
       isMobile && "game-panel-mobile"
     )}>
       <h3 className={clsx(
-        "font-semibold text-white flex items-center space-x-2",
+        "font-semibold text-gray-800 flex items-center space-x-2",
         isMobile ? "text-base" : "text-lg"
       )}>
-        <Brain className={clsx("w-5 h-5", isMobile && "w-4 h-4")} />
+        <Brain className={clsx("w-5 h-5 text-purple-600", isMobile && "w-4 h-4")} />
         <span>AI Opponent</span>
         {!disabled && (
-          <Zap className="w-4 h-4 text-yellow-400 animate-pulse" />
+          <Zap className="w-4 h-4 text-yellow-500 animate-pulse" />
         )}
       </h3>
 
       <div className="space-y-4">
         {/* Current AI Info */}
-        <div className="bg-white/5 rounded-lg p-4 space-y-3">
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 space-y-3 border border-purple-100">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Target className="w-4 h-4 text-gray-400" />
-              <span className="text-sm font-medium text-gray-300">Maia Level {currentLevel}</span>
+              <Target className="w-4 h-4 text-purple-600" />
+              <span className="text-sm font-medium text-gray-700">Maia Level {currentLevel}</span>
             </div>
             <span className={clsx("text-sm font-bold", currentAi.color)}>
               {currentAi.description}
@@ -69,12 +69,12 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
           
           <div className="grid grid-cols-2 gap-3 text-xs">
             <div className="text-center">
-              <div className="text-gray-400">Target Rating</div>
-              <div className="text-white font-semibold text-lg">{currentAi.rating}</div>
+              <div className="text-gray-600">Target Rating</div>
+              <div className="text-gray-800 font-bold text-lg">{currentAi.rating}</div>
             </div>
             <div className="text-center">
-              <div className="text-gray-400">Playing Style</div>
-              <div className="text-white font-semibold">Human-like</div>
+              <div className="text-gray-600">Playing Style</div>
+              <div className="text-gray-800 font-semibold">Human-like</div>
             </div>
           </div>
         </div>
@@ -82,12 +82,12 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
         {/* Level Slider */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-300">
+            <label className="text-sm font-medium text-gray-700">
               Difficulty Level
             </label>
             <div className="flex items-center space-x-1">
-              <Info className="w-3 h-3 text-gray-400" />
-              <span className="text-xs text-gray-400">
+              <Info className="w-3 h-3 text-gray-500" />
+              <span className="text-xs text-gray-500">
                 {disabled ? 'In Game' : 'Adjustable'}
               </span>
             </div>
@@ -108,15 +108,15 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
             />
             
             {/* Level Markers */}
-            <div className="flex justify-between mt-2 px-1">
+            <div className="flex justify-between mt-3 px-1">
               {aiLevels.map((ai) => (
                 <div
                   key={ai.level}
                   className={clsx(
                     "text-xs text-center transition-all duration-200",
                     ai.level === currentLevel 
-                      ? `${ai.color} font-bold transform scale-110` 
-                      : "text-gray-500"
+                      ? `${ai.color} font-bold transform scale-125` 
+                      : "text-gray-400"
                   )}
                 >
                   {ai.level}
@@ -129,7 +129,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
         {/* Quick Level Buttons - Mobile Only */}
         {isMobile && (
           <div className="space-y-2">
-            <div className="text-xs text-gray-400 text-center">Quick Select</div>
+            <div className="text-xs text-gray-600 text-center font-medium">Quick Select</div>
             <div className="grid grid-cols-3 gap-2">
               {[
                 { level: 1, label: "Easy" },
@@ -144,10 +144,10 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
                   }}
                   disabled={disabled}
                   className={clsx(
-                    "py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 touch-feedback",
+                    "py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 touch-feedback shadow-sm",
                     level === currentLevel
-                      ? "bg-blue-500/30 text-blue-300 border border-blue-500/50"
-                      : "bg-white/10 text-gray-300 border border-white/20",
+                      ? "ai-level-button active"
+                      : "ai-level-button",
                     disabled && "opacity-50 cursor-not-allowed"
                   )}
                 >
@@ -159,25 +159,25 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
         )}
 
         {/* AI Description */}
-        <div className="bg-white/5 rounded-lg p-3">
-          <div className="text-xs text-gray-400 leading-relaxed">
-            <strong className="text-white">Maia</strong> is trained on millions of human games 
+        <div className="bg-blue-50 rounded-xl p-3.5 border border-blue-100">
+          <div className="text-xs text-gray-600 leading-relaxed">
+            <strong className="text-gray-800">Maia</strong> is trained on millions of human games 
             to play like a {currentAi.description.toLowerCase()} player would. Unlike traditional 
-            engines, Maia makes <em className="text-blue-300">human-like mistakes</em> and 
+            engines, Maia makes <em className="text-blue-600 font-medium">human-like mistakes</em> and 
             follows recognizable patterns.
           </div>
         </div>
 
         {/* Performance Indicator */}
         {!disabled && (
-          <div className="flex items-center justify-center space-x-2 text-xs text-gray-400">
+          <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
             <div className="flex space-x-1">
               {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
                   className={clsx(
-                    "w-1 h-1 rounded-full",
-                    i < currentLevel / 3 ? "bg-blue-400" : "bg-gray-600"
+                    "w-2 h-2 rounded-full transition-all duration-200",
+                    i < currentLevel / 3 ? "bg-purple-500" : "bg-gray-300"
                   )}
                 />
               ))}
