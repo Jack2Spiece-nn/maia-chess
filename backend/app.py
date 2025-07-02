@@ -6,9 +6,11 @@ A lightweight Flask application that serves as the API for the Maia chess engine
 """
 
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from maia_engine import predict_move
 
 app = Flask(__name__)
+CORS(app)
 
 
 @app.route('/')
