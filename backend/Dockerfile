@@ -1,5 +1,5 @@
-# Use Python 3.11 slim image as base
-FROM python:3.11-slim
+# Use Python 3.10.12 slim image as base (matching runtime.txt)
+FROM python:3.10.12-slim
 
 # ---------------------------------------------------------------------------
 # Build and install lc0 (Leela Chess Zero) from source
@@ -42,7 +42,7 @@ RUN set -eux; \
 WORKDIR /app
 
 # Copy requirements first to leverage Docker cache
-# Since the Dockerfile is in backend/, we need to copy from backend/requirements.txt
+# Build context is at project root, so we copy from backend/requirements.txt
 COPY backend/requirements.txt .
 
 # Install Python dependencies
