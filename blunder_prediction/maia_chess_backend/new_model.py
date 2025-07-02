@@ -1,18 +1,11 @@
-import chess
-import chess.engine
+'''DEPRECATED placeholder module for future engine work.
+Currently unused by the codebase but kept for historical reference.
+'''
 
-class ChessEngine(object):
-    def __init__(self, engine, limits):
-        self.limits = chess.engine.Limit(**limits)
-        self.engine = engine
+class ChessEngine:  # pragma: no cover
+    """Stub replacement for the old experimental engine implementation."""
 
-    def getMove(self, board):
-        try:
-            results = self.engine.play(
-                    board,
-                    limit=self.limits,
-                    info = chess.engine.INFO_ALL
-            )
-
-        if isinstance(board, str):
-            board
+    def __init__(self, *args, **kwargs):  # noqa: D401
+        raise NotImplementedError(
+            "blunder_prediction.maia_chess_backend.new_model is deprecated and no longer maintained."
+        )

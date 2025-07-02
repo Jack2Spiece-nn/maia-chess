@@ -1,0 +1,31 @@
+[tool.black]
+line-length = 100
+exclude = '''
+/(
+  \.git
+  | \.mypy_cache
+  | \.venv
+  | node_modules
+  | frontend
+)/
+'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [
+    "node_modules",
+    "frontend",
+    ".venv",
+]
+select = ["E", "F", "I", "B"]
+ignore = ["E501", "I001", "F401", "F841", "B904", "F541"]
+
+# Skip research and data directories that are not part of the production
+# runtime. Cleaning them would require a huge refactor and is unnecessary for
+# backend CI / deployment.
+extend-exclude = [
+    "move_prediction",
+    "blunder_prediction",
+    "data_generators",
+]

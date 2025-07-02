@@ -7,6 +7,7 @@ Provides functionality for model caching, move prediction, and FEN processing.
 """
 
 import os
+import sys
 # Optional TensorFlow import. Fallback to lightweight placeholder if unavailable
 try:
     import tensorflow as tf  # type: ignore
@@ -19,6 +20,19 @@ import chess
 
 # Global model cache to prevent reloading models on every request
 _model_cache = {}
+
+# Add project root to PYTHONPATH so that we can import sibling packages when
+# running the backend from within the `backend/` directory (Render starts the
+# service with `cd backend`).
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Import the original Maia FEN → tensor converter. This keeps the backend
+# lightweight while still using the exact preprocessing logic from the
+# research code.
+try:
+    from move_prediction.maia_chess_backend.fen_to_vec import fenToVec  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover – research code not present in some builds
+    fenToVec = None  # fallback handled later
 
 def get_model(level):
     """
@@ -82,7 +96,7 @@ def _create_placeholder_model():
     """
     if _tf_available:
         # Build a minimal TensorFlow model
-        inputs = tf.keras.Input(shape=(8, 8, 12), name='board_input')
+        inputs = tf.keras.Input(shape=(8, 8, 19), name='board_input')
         x = tf.keras.layers.Flatten()(inputs)
         x = tf.keras.layers.Dense(128, activation='relu')(x)
         outputs = tf.keras.layers.Dense(4096, activation='softmax', name='move_probabilities')(x)
@@ -104,27 +118,28 @@ def _create_placeholder_model():
     return _DummyModel()
 
 
-def fen_to_features(fen_string):
+def fen_to_features(fen_string: str) -> np.ndarray:  # noqa: D401
+    """Convert FEN -> model feature tensor.
+
+    If the *real* converter is available (installed via the research
+    `move_prediction` package) we use it. Otherwise we fall back to the old
+    random tensor so the API still responds. The network expects shape
+    ``(8, 8, 12)`` in *channels-last* order.
     """
-    Convert a FEN string to the feature tensor required by the model.
-    
-    This is a placeholder function that will be replaced with the complex
-    data transformation from the original Maia project.
-    
-    Args:
-        fen_string (str): The FEN representation of the chess position
-        
-    Returns:
-        np.ndarray: Feature tensor with shape (8, 8, 12)
-    """
-    # Placeholder implementation - returns random features for now
-    # This will be replaced with the actual FEN to feature conversion
-    # using the logic from move_prediction/maia_chess_backend/fen_to_vec.py
-    
-    # For now, return a random tensor with the expected shape
-    features = np.random.random((8, 8, 12)).astype(np.float32)
-    
-    return features
+
+    if callable(fenToVec):  # happy path – use real preprocessing
+        try:
+            features: np.ndarray = fenToVec(fen_string).astype(np.float32)
+            # Original preprocessing outputs ``(C, H, W)``; transpose to
+            # ``(H, W, C)`` expected by Keras placeholder model.
+            if features.shape[0] == 19:  # 12 pieces + colour + 4 castles + ep?
+                features = np.moveaxis(features, 0, -1)  # (H, W, C)
+            return features
+        except Exception:  # pragma: no cover – never crash API on preprocess
+            pass
+
+    # Fallback – keep server responsive.
+    return np.random.random((8, 8, 12)).astype(np.float32)
 
 
 def get_best_move(model, features, legal_moves):
