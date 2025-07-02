@@ -25,7 +25,7 @@ test-frontend:
 	cd frontend && npm run test
 
 lint:
-	ruff check backend
+	python3 -m ruff check backend
 	cd frontend && npm run lint || true
 
 format:
