@@ -7,8 +7,13 @@ A lightweight Flask application that serves as the API for the Maia chess engine
 
 from flask import Flask, jsonify, request
 from maia_engine import predict_move
+from flask_cors import CORS
 
+# Enable Cross-Origin Resource Sharing so that the React frontend
+# served from a different domain/port can access this API without
+# additional proxy configuration.
 app = Flask(__name__)
+CORS(app)  # allow all origins by default; restrict in production if needed
 
 
 @app.route('/')
