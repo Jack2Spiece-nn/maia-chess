@@ -3,14 +3,19 @@ services:
   - type: web
     name: maia-chess-backend
     env: python
-    runtime: python-3.10.11
-    buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && gunicorn --bind 0.0.0.0:$PORT --workers 2 app:app
+    runtime: python-3.10.12
+    buildCommand: |
+      cd backend
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: cd backend && gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 app:app
     envVars:
       - key: FLASK_ENV
         value: production
       - key: FLASK_APP
         value: app.py
+      - key: PYTHONUNBUFFERED
+        value: "1"
     plan: free
 
   # Frontend Web Application

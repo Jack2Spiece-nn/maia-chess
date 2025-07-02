@@ -2,7 +2,7 @@ flask==2.3.3
 python-chess==1.999
 gunicorn==21.2.0
 numpy==1.24.3
-tensorflow==2.13.0
-protobuf==4.24.4
+tensorflow-cpu==2.12.0
+protobuf==3.20.3
 pytz
 humanize
