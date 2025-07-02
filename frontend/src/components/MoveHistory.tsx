@@ -81,13 +81,13 @@ ${pgnMoves.join(' ')}`;
     )}>
       <div className="flex items-center justify-between">
         <h3 className={clsx(
-          "font-semibold text-white flex items-center space-x-2",
+          "font-semibold text-gray-800 flex items-center space-x-2",
           isMobile ? "text-base" : "text-lg"
         )}>
-          <History className={clsx("w-5 h-5", isMobile && "w-4 h-4")} />
+          <History className={clsx("w-5 h-5 text-purple-600", isMobile && "w-4 h-4")} />
           <span>Move History</span>
           {moves.length > 0 && (
-            <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-1 rounded-full">
+            <span className="text-xs bg-purple-100 text-purple-600 px-2 py-1 rounded-full font-medium">
               {Math.ceil(moves.length / 2)}
             </span>
           )}
@@ -98,7 +98,7 @@ ${pgnMoves.join(' ')}`;
           {isMobile && (
             <button
               onClick={toggleExpanded}
-              className="button-touch text-gray-400 hover:text-white"
+              className="button-touch text-gray-500 hover:text-gray-700"
             >
               {isExpanded ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -108,7 +108,7 @@ ${pgnMoves.join(' ')}`;
           {moves.length > 0 && (
             <button
               onClick={exportPGN}
-              className="button-touch text-gray-400 hover:text-white"
+              className="button-touch text-gray-500 hover:text-gray-700"
               title="Export PGN"
             >
               <Download className="w-4 h-4" />
@@ -121,20 +121,20 @@ ${pgnMoves.join(' ')}`;
         <div className="space-y-3">
           {/* Game Info */}
           {moves.length > 0 && (
-            <div className="bg-white/5 rounded-lg p-3 space-y-2">
+            <div className="bg-purple-50 rounded-xl p-3 space-y-2 border border-purple-100">
               <div className="grid grid-cols-2 gap-4 text-xs">
                 <div className="text-center">
-                  <div className="text-gray-400">Total Moves</div>
-                  <div className="text-white font-semibold">{moves.length}</div>
+                  <div className="text-gray-600">Total Moves</div>
+                  <div className="text-gray-800 font-bold">{moves.length}</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-gray-400">Game Status</div>
+                  <div className="text-gray-600">Game Status</div>
                   <div className={clsx(
-                    "font-semibold capitalize",
-                    gameStatus === 'playing' && "text-green-400",
-                    gameStatus === 'checkmate' && "text-red-400",
-                    gameStatus === 'draw' && "text-blue-400",
-                    gameStatus === 'stalemate' && "text-yellow-400"
+                    "font-bold capitalize",
+                    gameStatus === 'playing' && "text-green-600",
+                    gameStatus === 'checkmate' && "text-red-600",
+                    gameStatus === 'draw' && "text-blue-600",
+                    gameStatus === 'stalemate' && "text-yellow-600"
                   )}>
                     {gameStatus}
                   </div>
@@ -169,29 +169,29 @@ ${pgnMoves.join(' ')}`;
                     key={i}
                     className={clsx(
                       "flex items-center space-x-3 p-2 rounded-lg transition-all duration-200",
-                      isLatestMove && "bg-blue-500/10 border border-blue-500/20",
-                      !isLatestMove && "hover:bg-white/5"
+                      isLatestMove && "bg-purple-100 border border-purple-200",
+                      !isLatestMove && "hover:bg-gray-50"
                     )}
                   >
-                    <div className="text-xs text-gray-400 w-6 text-center font-mono">
+                    <div className="text-xs text-gray-500 w-6 text-center font-mono font-medium">
                       {moveNumber}.
                     </div>
 
                     <div className="flex-1 grid grid-cols-2 gap-2">
                       {/* White Move */}
                       <div className={clsx(
-                        "text-sm font-mono p-1 rounded text-center",
-                        whiteMove && "bg-white/10 text-white",
-                        !whiteMove && "text-gray-500"
+                        "text-sm font-mono p-1.5 rounded-lg text-center font-medium",
+                        whiteMove && "bg-white border border-gray-200 text-gray-800 shadow-sm",
+                        !whiteMove && "text-gray-400"
                       )}>
                         {whiteMove || "—"}
                       </div>
 
                       {/* Black Move */}
                       <div className={clsx(
-                        "text-sm font-mono p-1 rounded text-center",
-                        blackMove && "bg-gray-800/50 text-gray-200",
-                        !blackMove && "text-gray-500"
+                        "text-sm font-mono p-1.5 rounded-lg text-center font-medium",
+                        blackMove && "bg-gray-800 text-white shadow-sm",
+                        !blackMove && "text-gray-400"
                       )}>
                         {blackMove || (i * 2 + 1 < moves.length ? "..." : "—")}
                       </div>
@@ -212,16 +212,16 @@ ${pgnMoves.join(' ')}`;
 
           {/* Controls */}
           {moves.length > 0 && !isMobile && (
-            <div className="flex items-center justify-between pt-2 border-t border-white/10">
+            <div className="flex items-center justify-between pt-2 border-t border-purple-100">
               <button
                 onClick={toggleNotation}
-                className="text-xs text-gray-400 hover:text-white flex items-center space-x-1 touch-feedback"
+                className="text-xs text-gray-600 hover:text-gray-800 flex items-center space-x-1 touch-feedback font-medium"
               >
                 <Clock className="w-3 h-3" />
                 <span>{showNotation ? 'Hide' : 'Show'} Times</span>
               </button>
 
-              <div className="text-xs text-gray-500">
+              <div className="text-xs text-gray-600 font-medium">
                 {moves.length} move{moves.length !== 1 ? 's' : ''} played
               </div>
             </div>

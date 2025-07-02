@@ -33,51 +33,51 @@ export const GameStatus: React.FC<GameStatusProps> = ({ gameState }) => {
   const getStatusIcon = () => {
     switch (gameState.gameStatus) {
       case 'checkmate':
-        return <Trophy className="w-5 h-5 text-yellow-400" />;
+        return <Trophy className="w-5 h-5 text-yellow-500" />;
       case 'playing':
         return gameState.isPlayerTurn ? 
-          <User className="w-5 h-5 text-blue-400" /> : 
-          <Crown className="w-5 h-5 text-purple-400" />;
+          <User className="w-5 h-5 text-blue-500" /> : 
+          <Crown className="w-5 h-5 text-purple-500" />;
       case 'stalemate':
       case 'draw':
-        return <AlertCircle className="w-5 h-5 text-orange-400" />;
+        return <AlertCircle className="w-5 h-5 text-orange-500" />;
       default:
-        return <Clock className="w-5 h-5 text-gray-400" />;
+        return <Clock className="w-5 h-5 text-gray-500" />;
     }
   };
 
   const getStatusColor = () => {
     switch (gameState.gameStatus) {
       case 'checkmate':
-        return 'text-yellow-400';
+        return 'text-yellow-600';
       case 'playing':
-        return gameState.isPlayerTurn ? 'text-blue-400' : 'text-purple-400';
+        return gameState.isPlayerTurn ? 'text-blue-600' : 'text-purple-600';
       case 'stalemate':
       case 'draw':
-        return 'text-orange-400';
+        return 'text-orange-600';
       default:
-        return 'text-gray-400';
+        return 'text-gray-600';
     }
   };
 
   return (
-    <div className="flex items-center justify-between bg-gradient-to-r from-slate-800/50 to-slate-700/50 rounded-lg p-4 border border-slate-600/50">
+    <div className="flex items-center justify-between bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 border border-purple-100 shadow-sm">
       <div className="flex items-center space-x-3">
         {getStatusIcon()}
         <div>
-          <h3 className={`font-semibold ${getStatusColor()}`}>
+          <h3 className={`font-bold ${getStatusColor()}`}>
             {getStatusMessage()}
           </h3>
-          <p className="text-sm text-gray-400">
-            Playing as {gameState.playerColor} vs Maia {gameState.aiLevel}
+          <p className="text-sm text-gray-600">
+            Playing as <span className="font-medium">{gameState.playerColor}</span> vs <span className="font-medium">Maia {gameState.aiLevel}</span>
           </p>
         </div>
       </div>
       
       <div className="text-right">
-        <div className="text-sm text-gray-400">Move {Math.ceil(gameState.moveHistory.length / 2)}</div>
+        <div className="text-sm text-gray-600 font-medium">Move {Math.ceil(gameState.moveHistory.length / 2)}</div>
         {gameState.chess.inCheck() && (
-          <div className="text-red-400 text-sm font-medium flex items-center space-x-1 mt-1">
+          <div className="text-red-500 text-sm font-bold flex items-center space-x-1 mt-1">
             <AlertCircle className="w-4 h-4" />
             <span>Check!</span>
           </div>

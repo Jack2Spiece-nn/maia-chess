@@ -30,8 +30,19 @@
 }
 
 @keyframes sparkle {
-  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
-  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+  0%, 100% { opacity: 0; transform: scale(0); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.9); opacity: 0; }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes captureEffect {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0; }
 }
 
 @layer base {
@@ -43,7 +54,7 @@
   
   body {
     margin: 0;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
     min-height: 100vh;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
@@ -81,7 +92,7 @@
 @layer components {
   .chess-board {
     border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
     overflow: hidden;
     touch-action: none;
     -webkit-user-drag: none;
@@ -89,88 +100,122 @@
     -moz-user-drag: none;
     -o-user-drag: none;
     user-drag: none;
+    background: white;
   }
 
   .chess-board-mobile {
     @apply chess-board;
-    width: 100vw;
-    max-width: calc(100vw - 2rem);
+    width: calc(100vw - 1rem);
+    max-width: calc(100vw - 1rem);
     height: auto;
     aspect-ratio: 1;
     margin: 0 auto;
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
   }
 
   @media (max-width: 768px) {
     .chess-board {
       width: 100%;
-      max-width: min(calc(100vw - 2rem), calc(100vh - 200px));
+      max-width: min(calc(100vw - 1rem), calc(100vh - 280px));
     }
   }
   
   .game-panel {
-    @apply bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-4 md:p-6 border border-white/20;
+    @apply backdrop-blur-md rounded-2xl shadow-2xl p-4 md:p-6;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(233, 213, 255, 0.3);
   }
 
   .game-panel-mobile {
     @apply game-panel;
-    margin: 0.5rem;
-    padding: 1rem;
+    margin: 0.25rem;
+    padding: 0.75rem;
     border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   }
   
   .button-primary {
-    @apply bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
+    @apply bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    border: none;
+    outline: none;
   }
 
   .button-primary-mobile {
     @apply button-primary;
-    padding: 0.875rem 1.5rem;
-    font-size: 1.1rem;
-    min-height: 48px;
-    border-radius: 0.75rem;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    min-height: 52px;
+    border-radius: 0.875rem;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .button-secondary {
-    @apply bg-white/10 hover:bg-white/20 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-200 border border-gray-200 hover:border-gray-300;
+    @apply hover:bg-white text-gray-700 font-medium py-2.5 px-5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgb(233, 213, 255);
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
-    min-height: 44px;
+    min-height: 48px;
+  }
+  
+  .button-secondary:hover {
+    border-color: rgb(221, 193, 253);
   }
 
   .button-touch {
-    min-height: 44px;
-    min-width: 44px;
+    min-height: 48px;
+    min-width: 48px;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
   }
   
   .skill-slider {
-    @apply w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer;
+    @apply w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer;
     -webkit-appearance: none;
     touch-action: manipulation;
   }
   
   .skill-slider::-webkit-slider-thumb {
-    @apply appearance-none w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full cursor-pointer shadow-lg;
+    @apply appearance-none w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full cursor-pointer shadow-lg;
     -webkit-appearance: none;
-    border: none;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   }
   
   .skill-slider::-moz-range-thumb {
-    @apply w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full cursor-pointer border-none shadow-lg;
-    border: none;
+    @apply w-8 h-8 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full cursor-pointer shadow-lg;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Mobile skill slider with larger touch target */
+  @media (max-width: 768px) {
+    .skill-slider {
+      @apply h-5;
+    }
+    
+    .skill-slider::-webkit-slider-thumb {
+      @apply w-10 h-10;
+    }
+    
+    .skill-slider::-moz-range-thumb {
+      @apply w-10 h-10;
+    }
   }
 
   .move-highlight {
-    animation: shake 0.5s ease-in-out;
+    animation: none;
   }
 
   .capture-animation {
-    animation: sparkle 0.6s ease-out;
+    animation: captureEffect 0.6s ease-out;
   }
 
   .piece-hover {
@@ -227,7 +272,7 @@
 
   /* Better focus states for accessibility */
   .focus-visible:focus {
-    @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent;
+    @apply outline-none ring-2 ring-purple-500 ring-offset-2 ring-offset-transparent;
   }
 
   /* Mobile-specific improvements */
@@ -236,13 +281,38 @@
       font-size: 16px; /* Prevent zoom on iOS */
     }
     
-    .mobile-panel {
-      @apply rounded-t-3xl bg-white/95 backdrop-blur-sm border-t border-white/20;
-      margin-top: auto;
-      border-bottom: none;
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-    }
+          .mobile-panel {
+        @apply rounded-t-2xl backdrop-blur-md border-t;
+        background: rgba(255, 255, 255, 0.98);
+        border-color: rgba(233, 213, 255, 0.3);
+        margin-top: auto;
+        border-bottom: none;
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+      }
+
+          /* Mobile control buttons */
+      .control-button {
+        @apply text-gray-700 font-medium py-3 px-4 rounded-xl transition-all duration-200 shadow-md active:scale-95;
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgb(233, 213, 255);
+        min-height: 52px;
+        font-size: 0.95rem;
+      }
+
+      /* Mobile AI level selector */
+      .ai-level-button {
+        @apply text-gray-600 py-2 px-3 rounded-lg transition-all;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid rgba(233, 213, 255, 0.5);
+        min-height: 44px;
+      }
+
+      .ai-level-button.active {
+        @apply bg-gradient-to-r from-indigo-600 to-purple-600 text-white;
+        border-color: transparent;
+      }
   }
 
   /* High contrast mode support */
