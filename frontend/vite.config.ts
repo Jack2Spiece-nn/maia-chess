@@ -13,6 +13,11 @@ export default defineConfig({
       }
     }
   },
+  preview: {
+    host: true,
+    port: 4173,
+    allowedHosts: ['.onrender.com', 'localhost']
+  },
   build: {
     outDir: 'dist',
     sourcemap: true
