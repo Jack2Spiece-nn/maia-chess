@@ -1,5 +1,6 @@
 {
   "name": "maia-chess-frontend",
+  "type": "module",
   "version": "1.0.0",
   "description": "Frontend for Maia Chess Engine - Interactive chess game with AI opponent",
   "scripts": {

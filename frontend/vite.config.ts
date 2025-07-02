@@ -16,6 +16,7 @@ export default defineConfig({
   },
   preview: {
     host: true,
-    port: 4173
+    port: 4173,
+    allowedHosts: ['maia-chess-frontend.onrender.com']
   }
 })
