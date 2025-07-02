@@ -1,0 +1,22 @@
+[tool.black]
+line-length = 100
+exclude = '''
+/(
+  \.git
+  | \.mypy_cache
+  | \.venv
+  | node_modules
+  | frontend
+)/
+'''
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [
+    "node_modules",
+    "frontend",
+    "\.venv",
+]
+select = ["E", "F", "I", "B"]
+ignore = ["E501"]
