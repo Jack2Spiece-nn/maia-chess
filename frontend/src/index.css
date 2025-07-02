@@ -23,15 +23,58 @@
   }
 }
 
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1) rotate(180deg); }
+}
+
 @layer base {
   html {
     font-family: Inter, system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   
   body {
     margin: 0;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+  /* iOS Safari fixes */
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+
+  * {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+
+  input, textarea, button {
+    -webkit-user-select: auto;
+    -moz-user-select: auto;
+    -ms-user-select: auto;
+    user-select: auto;
   }
 }
 
@@ -40,29 +83,185 @@
     border-radius: 12px;
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     overflow: hidden;
+    touch-action: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+  }
+
+  .chess-board-mobile {
+    @apply chess-board;
+    width: 100vw;
+    max-width: calc(100vw - 2rem);
+    height: auto;
+    aspect-ratio: 1;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 768px) {
+    .chess-board {
+      width: 100%;
+      max-width: min(calc(100vw - 2rem), calc(100vh - 200px));
+    }
   }
   
   .game-panel {
-    @apply bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/20;
+    @apply bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl p-4 md:p-6 border border-white/20;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .game-panel-mobile {
+    @apply game-panel;
+    margin: 0.5rem;
+    padding: 1rem;
+    border-radius: 1rem;
   }
   
   .button-primary {
     @apply bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  .button-primary-mobile {
+    @apply button-primary;
+    padding: 0.875rem 1.5rem;
+    font-size: 1.1rem;
+    min-height: 48px;
+    border-radius: 0.75rem;
   }
   
   .button-secondary {
     @apply bg-white/10 hover:bg-white/20 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-200 border border-gray-200 hover:border-gray-300;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    min-height: 44px;
+  }
+
+  .button-touch {
+    min-height: 44px;
+    min-width: 44px;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
   }
   
   .skill-slider {
-    @apply w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer;
+    @apply w-full h-3 bg-gray-200 rounded-lg appearance-none cursor-pointer;
+    -webkit-appearance: none;
+    touch-action: manipulation;
   }
   
   .skill-slider::-webkit-slider-thumb {
-    @apply appearance-none w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full cursor-pointer shadow-lg;
+    @apply appearance-none w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full cursor-pointer shadow-lg;
+    -webkit-appearance: none;
+    border: none;
   }
   
   .skill-slider::-moz-range-thumb {
-    @apply w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full cursor-pointer border-none shadow-lg;
+    @apply w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full cursor-pointer border-none shadow-lg;
+    border: none;
+  }
+
+  .move-highlight {
+    animation: shake 0.5s ease-in-out;
+  }
+
+  .capture-animation {
+    animation: sparkle 0.6s ease-out;
+  }
+
+  .piece-hover {
+    @apply transform transition-transform duration-150 hover:scale-110;
+  }
+
+  .touch-feedback {
+    @apply active:scale-95 transition-transform duration-75;
+  }
+
+  .glass-effect {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .loading-spinner {
+    @apply animate-spin rounded-full border-4 border-gray-200 border-t-blue-500;
+  }
+
+  .pulse-ring {
+    @apply absolute inline-flex rounded-full opacity-75 animate-ping;
+  }
+
+  .notification {
+    @apply fixed top-4 right-4 z-50 max-w-sm bg-white/95 backdrop-blur-sm rounded-lg shadow-xl border border-white/20 p-4 transform transition-all duration-300;
+  }
+
+  @media (max-width: 640px) {
+    .notification {
+      @apply top-2 right-2 left-2 max-w-none;
+    }
+  }
+
+  /* Hide scrollbars but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Custom chess piece animations */
+  .chess-piece-enter {
+    animation: bounceIn 0.6s ease-out;
+  }
+
+  .chess-piece-exit {
+    animation: captureEffect 0.5s ease-out forwards;
+  }
+
+  /* Better focus states for accessibility */
+  .focus-visible:focus {
+    @apply outline-none ring-2 ring-blue-500 ring-offset-2 ring-offset-transparent;
+  }
+
+  /* Mobile-specific improvements */
+  @media (max-width: 768px) {
+    .mobile-optimized {
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    .mobile-panel {
+      @apply rounded-t-3xl bg-white/95 backdrop-blur-sm border-t border-white/20;
+      margin-top: auto;
+      border-bottom: none;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .game-panel {
+      @apply bg-white border-gray-900;
+    }
+    
+    .button-primary {
+      @apply bg-blue-600 border-2 border-blue-800;
+    }
+  }
+
+  /* Reduced motion support */
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Chess } from 'chess.js';
 import { GameState, GameStatus, PlayerColor } from '../types/game';
 import { apiService } from '../services/api';
@@ -27,7 +27,7 @@ export const useChessGame = () => {
 
   const getCapturedPieces = useCallback((chess: Chess) => {
     const history = chess.history({ verbose: true });
-    const captured = { white: [], black: [] };
+    const captured: { white: string[], black: string[] } = { white: [], black: [] };
     
     history.forEach(move => {
       if (move.captured) {
@@ -40,7 +40,7 @@ export const useChessGame = () => {
     return captured;
   }, []);
 
-  const makeMove = useCallback(async (from: string, to: string, promotion?: string) => {
+  const makeMove = useCallback((from: string, to: string, promotion?: string) => {
     const chess = new Chess(gameState.chess.fen());
     
     try {

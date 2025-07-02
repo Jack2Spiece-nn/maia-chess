@@ -1,25 +1,21 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react()
+  ],
+  build: {
+    target: 'esnext',
+    outDir: 'dist'
+  },
   server: {
-    port: 3000,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:5000',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
-      }
-    }
+    host: true,
+    port: 3000
   },
   preview: {
     host: true,
-    port: 4173,
-    allowedHosts: ['.onrender.com', 'localhost', 'maia-chess-frontend.onrender.com']
-  },
-  build: {
-    outDir: 'dist',
-    sourcemap: true
+    port: 4173
   }
 })
