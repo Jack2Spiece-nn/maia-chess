@@ -77,7 +77,11 @@ def _get_engine(level: int) -> chess.engine.SimpleEngine:
     return engine
 
 
-def predict_move(fen_string: str, level: int = 1500) -> str:  # noqa: D401
+def predict_move(
+    fen_string: str,
+    level: int = 1500,
+    nodes: int = 1,
+) -> str:  # noqa: D401
     """Return Maia's best move for *fen_string* at the given Elo *level*.
 
     The function spawns (or reuses) an lc0 engine loaded with the corresponding
@@ -95,11 +99,20 @@ def predict_move(fen_string: str, level: int = 1500) -> str:  # noqa: D401
     if board.is_game_over():
         raise ValueError("No legal moves available in the given position")
 
+    # Sanitize nodes – must be positive int, default already enforced above
+    try:
+        nodes = int(nodes)
+    except (TypeError, ValueError):
+        nodes = 1
+
+    if nodes < 1:
+        nodes = 1
+
     engine = _get_engine(level)
 
     try:
-        # nodes=1 reproduces the behaviour used on lichess Maia bots
-        result = engine.play(board, chess.engine.Limit(nodes=1))
+        # Use caller-provided search limit (defaults to 1 to keep latency low)
+        result = engine.play(board, chess.engine.Limit(nodes=nodes))
     except chess.engine.EngineError as exc:
         raise RuntimeError(f"lc0 engine error: {exc}") from exc
 

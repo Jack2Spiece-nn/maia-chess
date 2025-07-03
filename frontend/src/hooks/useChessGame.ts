@@ -11,6 +11,7 @@ export const useChessGame = () => {
     aiLevel: 1500, // This now stores the actual rating
     isPlayerTurn: true,
     isThinking: false,
+    nodes: 1,
     moveHistory: [],
     capturedPieces: { white: [], black: [] },
     lastMove: null,
@@ -63,6 +64,7 @@ export const useChessGame = () => {
         chess,
         gameStatus: newStatus,
         isPlayerTurn: false,
+        nodes: prev.nodes,
         moveHistory: [...prev.moveHistory, move.san],
         capturedPieces,
         lastMove: { from, to },
@@ -87,7 +89,7 @@ export const useChessGame = () => {
     setError(null);
 
     try {
-      const response = await apiService.getMove(chess.fen(), gameState.aiLevel);
+      const response = await apiService.getMove(chess.fen(), gameState.aiLevel, gameState.nodes);
       
       // Check if response contains an error
       if (!response || !response.move) {
@@ -110,6 +112,7 @@ export const useChessGame = () => {
         chess: aiChess,
         gameStatus: newStatus,
         isPlayerTurn: true,
+        nodes: prev.nodes,
         isThinking: false,
         moveHistory: [...prev.moveHistory, aiMove.san],
         capturedPieces,
@@ -147,7 +150,7 @@ export const useChessGame = () => {
         isPlayerTurn: true,
       }));
     }
-  }, [gameState.aiLevel, updateGameStatus, getCapturedPieces]);
+  }, [gameState.aiLevel, gameState.nodes, updateGameStatus, getCapturedPieces]);
 
   const startNewGame = useCallback((playerColor: PlayerColor = 'white', aiRating: number = 1500) => {
     const chess = new Chess();
@@ -157,6 +160,7 @@ export const useChessGame = () => {
       gameStatus: 'playing',
       playerColor,
       aiLevel: aiRating, // Store the actual rating
+      nodes: gameState.nodes,
       isPlayerTurn: playerColor === 'white',
       isThinking: false,
       moveHistory: [],
@@ -170,7 +174,7 @@ export const useChessGame = () => {
     if (playerColor === 'black') {
       setTimeout(() => requestAiMove(chess), 500);
     }
-  }, [requestAiMove]);
+  }, [requestAiMove, gameState.nodes]);
 
   const resignGame = useCallback(() => {
     setGameState(prev => ({
@@ -185,6 +189,10 @@ export const useChessGame = () => {
     setGameState(prev => ({ ...prev, aiLevel: rating })); // Store the actual rating
   }, []);
 
+  const setNodes = useCallback((nodes: number) => {
+    setGameState(prev => ({ ...prev, nodes }));
+  }, []);
+
   return {
     gameState,
     error,
@@ -192,6 +200,7 @@ export const useChessGame = () => {
     startNewGame,
     resignGame,
     setAiLevel,
+    setNodes,
     clearError: () => setError(null),
   };
 };

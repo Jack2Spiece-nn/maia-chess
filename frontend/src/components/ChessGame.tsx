@@ -7,6 +7,7 @@ import { GameControls } from './GameControls';
 import { GameStatus } from './GameStatus';
 import { MoveHistory } from './MoveHistory';
 import { AiSettings } from './AiSettings';
+import { NodeSettings } from './NodeSettings';
 import { SoundSettings } from './SoundSettings';
 import { clsx } from 'clsx';
 
@@ -18,6 +19,7 @@ export const ChessGame: React.FC = () => {
     startNewGame,
     resignGame,
     setAiLevel,
+    setNodes,
     clearError,
   } = useChessGame();
 
@@ -27,6 +29,18 @@ export const ChessGame: React.FC = () => {
   const [capturedPiece, setCapturedPiece] = useState<boolean>(false);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
+
+  // Board orientation state & flip
+  const [boardOrientation, setBoardOrientation] = useState<'white' | 'black'>(gameState.playerColor);
+
+  // Update orientation when player color changes (e.g., new game)
+  React.useEffect(() => {
+    setBoardOrientation(gameState.playerColor);
+  }, [gameState.playerColor]);
+
+  const toggleBoardOrientation = () => {
+    setBoardOrientation((prev) => (prev === 'white' ? 'black' : 'white'));
+  };
 
   const onDrop = (sourceSquare: string, targetSquare: string) => {
     // Clear selection when using drag-drop
@@ -195,14 +209,14 @@ export const ChessGame: React.FC = () => {
           )}
           
           <div className={clsx(
-            "mx-auto",
+            "relative mx-auto",
             isMobile ? "chess-board-mobile" : "chess-board max-w-lg"
           )}>
             <Chessboard
               position={gameState.chess.fen()}
               onPieceDrop={onDrop}
               onSquareClick={onSquareClick}
-              boardOrientation={'white'}
+              boardOrientation={boardOrientation}
               arePiecesDraggable={
                 gameState.isPlayerTurn && 
                 gameState.gameStatus === 'playing' && 
@@ -243,6 +257,24 @@ export const ChessGame: React.FC = () => {
               }}
               {...(boardSize && { boardWidth: boardSize })}
             />
+
+            {/* Flip board button */}
+            <button
+              onClick={toggleBoardOrientation}
+              className="absolute top-4 right-4 bg-white/80 hover:bg-white rounded-full p-2 shadow touch-feedback"
+              aria-label="Flip board"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-700"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={2}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 15l-6 6-6-6M5 9l6-6 6 6" />
+              </svg>
+            </button>
           </div>
 
           {gameState.isThinking && (
@@ -272,10 +304,15 @@ export const ChessGame: React.FC = () => {
               onResign={handleResign}
             />
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <AiSettings
                 currentLevel={gameState.aiLevel}
                 onLevelChange={setAiLevel}
+                disabled={gameState.gameStatus === 'playing'}
+              />
+              <NodeSettings
+                currentNodes={gameState.nodes}
+                onNodesChange={setNodes}
                 disabled={gameState.gameStatus === 'playing'}
               />
               <SoundSettings />
@@ -298,6 +335,12 @@ export const ChessGame: React.FC = () => {
             <AiSettings
               currentLevel={gameState.aiLevel}
               onLevelChange={setAiLevel}
+              disabled={gameState.gameStatus === 'playing'}
+            />
+
+            <NodeSettings
+              currentNodes={gameState.nodes}
+              onNodesChange={setNodes}
               disabled={gameState.gameStatus === 'playing'}
             />
 

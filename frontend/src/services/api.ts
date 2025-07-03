@@ -5,11 +5,13 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 export interface MoveRequest {
   fen: string;
   level?: number;
+  nodes?: number;
 }
 
 export interface MoveResponse {
   move: string;
   level: number;
+  nodes?: number;
 }
 
 export interface HealthResponse {
@@ -38,10 +40,15 @@ class ApiService {
   /**
    * Get the best move from Maia AI for a given position
    */
-  async getMove(fen: string, level: number = 1500): Promise<MoveResponse> {
+  async getMove(
+    fen: string,
+    level: number = 1500,
+    nodes: number = 1,
+  ): Promise<MoveResponse> {
     const response = await this.apiClient.post<MoveResponse>('/get_move', {
       fen,
       level,
+      nodes,
     });
     return response.data;
   }

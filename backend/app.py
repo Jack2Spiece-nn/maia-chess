@@ -40,7 +40,8 @@ def get_move():
     Returns:
     {
         "move": "e2e4",
-        "level": 1500
+        "level": 1500,
+        "nodes": 1
     }
     """
     try:
@@ -61,18 +62,27 @@ def get_move():
         # Extract level (optional, defaults to 1500)
         level = data.get('level', 1500)
         
-        # Validate level is an integer
+        # Extract nodes (optional, defaults to 1)
+        nodes = data.get('nodes', 1)
+        
+        # Validate level and nodes are integers
         try:
             level = int(level)
         except (ValueError, TypeError):
             return jsonify({'error': 'Level must be an integer'}), 400
         
+        try:
+            nodes = int(nodes)
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Nodes must be an integer'}), 400
+        
         # Get the predicted move
-        move = predict_move(fen, level)
+        move = predict_move(fen, level, nodes)
         
         return jsonify({
             'move': move,
-            'level': level
+            'level': level,
+            'nodes': nodes
         })
         
     except FileNotFoundError as e:

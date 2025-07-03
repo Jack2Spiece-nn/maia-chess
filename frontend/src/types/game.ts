@@ -9,6 +9,7 @@ export interface GameState {
   gameStatus: GameStatus;
   playerColor: PlayerColor;
   aiLevel: number;
+  nodes: number;
   isPlayerTurn: boolean;
   isThinking: boolean;
   moveHistory: string[];
