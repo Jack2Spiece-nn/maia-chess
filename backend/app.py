@@ -6,6 +6,7 @@ A lightweight Flask application that serves as the API for the Maia chess engine
 """
 
 import os
+import re
 from flask import Flask, jsonify, request
 from maia_engine import predict_move
 from flask_cors import CORS
@@ -15,17 +16,54 @@ from flask_cors import CORS
 # additional proxy configuration.
 app = Flask(__name__)
 
-# Configure CORS for render deployment
-if os.environ.get('ENVIRONMENT') == 'production':
-    # Production CORS for render
-    CORS(app, origins=[
-        'https://maia-chess-frontend.onrender.com',
-        'https://maia-chess-frontend-*.onrender.com'  # Handle preview deployments
-    ])
-else:
-    # Development CORS
-    CORS(app)
+def is_valid_render_origin(origin):
+    """
+    Check if the origin is a valid Render deployment URL.
+    Supports both main deployment and preview deployment patterns.
+    """
+    if not origin:
+        return False
+    
+    # Main deployment URL
+    if origin == 'https://maia-chess-frontend.onrender.com':
+        return True
+    
+    # Preview deployment pattern: https://maia-chess-frontend-pr-123.onrender.com
+    # or other patterns like: https://maia-chess-frontend-abc123.onrender.com
+    preview_pattern = r'^https://maia-chess-frontend-[a-zA-Z0-9\-]+\.onrender\.com$'
+    if re.match(preview_pattern, origin):
+        return True
+    
+    return False
 
+# Configure CORS for render deployment
+@app.after_request
+def after_request(response):
+    """Custom CORS handling for Render deployments."""
+    origin = request.headers.get('Origin')
+    
+    if os.environ.get('ENVIRONMENT') == 'production':
+        # Production: only allow Render deployment URLs
+        if origin and is_valid_render_origin(origin):
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    else:
+        # Development: allow all origins
+        if origin:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    
+    return response
+
+# Basic CORS setup for OPTIONS requests
+CORS(app, supports_credentials=False)
+
+@app.route('/get_move', methods=['OPTIONS'])
+def handle_options():
+    """Handle preflight OPTIONS requests for CORS."""
+    return '', 204
 
 @app.route('/')
 def health_check():

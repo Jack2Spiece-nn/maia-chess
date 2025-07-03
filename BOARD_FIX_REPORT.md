@@ -62,13 +62,14 @@ Based on your request, I identified and fixed several critical issues with the c
 
 ## 🚀 Render Deployment Optimizations
 
-### 1. **CORS Configuration**
-- **Problem**: Generic CORS setup not optimized for production
-- **Solution**: Environment-specific CORS configuration
+### 1. **CORS Configuration (Critical Bug Fix)**
+- **Problem**: Flask-CORS doesn't support mid-domain wildcards like `https://maia-chess-frontend-*.onrender.com`, causing preview deployment failures
+- **Solution**: Custom CORS handler with regex pattern validation
 - **Changes**:
-  - Production CORS for specific render domains
-  - Development CORS for local testing
-  - Support for preview deployments
+  - Implemented custom origin validation function using regex
+  - Fixed CORS for Render preview deployments (e.g., PR previews)
+  - Environment-aware CORS policies (strict in production, permissive in development)
+  - Proper handling of preflight OPTIONS requests
 
 ### 2. **Environment Configuration**
 - **Problem**: No environment-specific settings
