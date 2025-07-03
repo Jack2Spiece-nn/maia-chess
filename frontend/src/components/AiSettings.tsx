@@ -10,6 +10,7 @@ interface AiSettingsProps {
   disabled: boolean;
 }
 
+// Central mapping between UI slider step (1-9) and Maia rating (1100-1900)
 const aiLevels = [
   { level: 1, rating: 1100, description: "Beginner", color: "text-green-500" },
   { level: 2, rating: 1200, description: "Novice", color: "text-green-500" },
@@ -20,7 +21,23 @@ const aiLevels = [
   { level: 7, rating: 1700, description: "Expert", color: "text-orange-500" },
   { level: 8, rating: 1800, description: "Master", color: "text-red-500" },
   { level: 9, rating: 1900, description: "Grandmaster", color: "text-purple-500" },
-];
+] as const;
+
+/**
+ * Convert Maia rating (1100-1900) to slider index (1-9).
+ */
+const ratingToLevel = (rating: number): number => {
+  const found = aiLevels.find((l) => l.rating === rating);
+  return found ? found.level : 5; // default to club player (1500)
+};
+
+/**
+ * Convert slider level (1-9) back to Maia rating.
+ */
+const levelToRating = (level: number): number => {
+  const idx = aiLevels.find((l) => l.level === level);
+  return idx ? idx.rating : 1500;
+};
 
 export const AiSettings: React.FC<AiSettingsProps> = ({
   currentLevel,
@@ -30,11 +47,13 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
   const { isMobile } = useDeviceType();
   const { playSound } = useChessSound();
 
-  const currentAi = aiLevels.find(ai => ai.level === currentLevel) || aiLevels[4];
+  // currentLevel coming from game state is a RATING value (1100–1900).
+  const currentAi = aiLevels.find(ai => ai.rating === currentLevel) || aiLevels[4];
 
   const handleLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newLevel = parseInt(event.target.value);
-    onLevelChange(newLevel);
+    const newSliderLevel = parseInt(event.target.value, 10); // 1-9
+    const newRating = levelToRating(newSliderLevel);
+    onLevelChange(newRating);
     playSound('buttonClick');
   };
 
@@ -60,7 +79,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Target className="w-4 h-4 text-purple-600" />
-              <span className="text-sm font-medium text-gray-700">Maia Level {currentLevel}</span>
+              <span className="text-sm font-medium text-gray-700">Maia {currentLevel}</span>
             </div>
             <span className={clsx("text-sm font-bold", currentAi.color)}>
               {currentAi.description}
@@ -98,7 +117,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
               type="range"
               min="1"
               max="9"
-              value={currentLevel}
+              value={ratingToLevel(currentLevel)}
               onChange={handleLevelChange}
               disabled={disabled}
               className={clsx(
@@ -114,7 +133,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
                   key={ai.level}
                   className={clsx(
                     "text-xs text-center transition-all duration-200",
-                    ai.level === currentLevel 
+                    ai.rating === currentLevel 
                       ? `${ai.color} font-bold transform scale-125` 
                       : "text-gray-400"
                   )}
@@ -131,6 +150,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
           <div className="space-y-2">
             <div className="text-xs text-gray-600 text-center font-medium">Quick Select</div>
             <div className="grid grid-cols-3 gap-2">
+              {/* Quick select always sends rating values */}
               {[
                 { level: 1, label: "Easy" },
                 { level: 5, label: "Medium" },
@@ -139,13 +159,13 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
                 <button
                   key={level}
                   onClick={() => {
-                    onLevelChange(level);
+                    onLevelChange(levelToRating(level));
                     playSound('buttonClick');
                   }}
                   disabled={disabled}
                   className={clsx(
                     "py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 touch-feedback shadow-sm",
-                    level === currentLevel
+                    level === ratingToLevel(currentLevel)
                       ? "ai-level-button active"
                       : "ai-level-button",
                     disabled && "opacity-50 cursor-not-allowed"
@@ -177,7 +197,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
                   key={i}
                   className={clsx(
                     "w-2 h-2 rounded-full transition-all duration-200",
-                    i < currentLevel / 3 ? "bg-purple-500" : "bg-gray-300"
+                    i < ratingToLevel(currentLevel) / 3 ? "bg-purple-500" : "bg-gray-300"
                   )}
                 />
               ))}

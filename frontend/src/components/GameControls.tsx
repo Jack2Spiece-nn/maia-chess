@@ -108,7 +108,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
                 <span className="text-gray-800 font-semibold">{Math.ceil(gameState.moveHistory.length / 2)}</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-gray-600">AI Level:</span>
+                <span className="text-gray-600">AI Rating:</span>
                 <span className="text-gray-800 font-semibold">{gameState.aiLevel}</span>
               </div>
             </div>
@@ -171,9 +171,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
           {/* Difficulty Preview */}
           <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-3.5 border border-purple-100">
             <div className="text-xs text-gray-600 text-center">
-              Current AI Level: <span className="text-gray-800 font-semibold">{gameState.aiLevel}</span>
-              <br />
-              Estimated Rating: <span className="text-purple-600 font-semibold">{gameState.aiLevel * 100 + 1000}</span>
+              Current AI Rating: <span className="text-purple-600 font-semibold">{gameState.aiLevel}</span>
             </div>
           </div>
         </div>
