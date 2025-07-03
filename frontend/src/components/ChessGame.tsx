@@ -18,6 +18,7 @@ export const ChessGame: React.FC = () => {
     startNewGame,
     resignGame,
     setAiLevel,
+    setAiNodes,
     clearError,
   } = useChessGame();
 
@@ -27,6 +28,7 @@ export const ChessGame: React.FC = () => {
   const [capturedPiece, setCapturedPiece] = useState<boolean>(false);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
+  const [boardFlipped, setBoardFlipped] = useState<boolean>(false);
 
   const onDrop = (sourceSquare: string, targetSquare: string) => {
     // Clear selection when using drag-drop
@@ -198,11 +200,24 @@ export const ChessGame: React.FC = () => {
             "mx-auto",
             isMobile ? "chess-board-mobile" : "chess-board max-w-lg"
           )}>
+            <div className="flex justify-between items-center mb-4">
+              <button
+                onClick={() => setBoardFlipped(!boardFlipped)}
+                className={clsx(
+                  "px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "bg-slate-700 hover:bg-slate-600 text-white",
+                  "border border-slate-600 hover:border-slate-500",
+                  isMobile ? "text-xs px-2 py-1" : ""
+                )}
+              >
+                {boardFlipped ? "↑ Flip to White" : "↓ Flip to Black"}
+              </button>
+            </div>
             <Chessboard
               position={gameState.chess.fen()}
               onPieceDrop={onDrop}
               onSquareClick={onSquareClick}
-              boardOrientation={'white'}
+              boardOrientation={boardFlipped ? 'black' : 'white'}
               arePiecesDraggable={
                 gameState.isPlayerTurn && 
                 gameState.gameStatus === 'playing' && 
@@ -274,8 +289,10 @@ export const ChessGame: React.FC = () => {
             
             <div className="grid grid-cols-2 gap-4">
               <AiSettings
-                currentLevel={gameState.aiLevel}
+                currentLevel={gameState.aiLevel as import('../types/game').AiLevel}
+                currentNodes={gameState.aiNodes as import('../types/game').NodesOption}
                 onLevelChange={setAiLevel}
+                onNodesChange={setAiNodes}
                 disabled={gameState.gameStatus === 'playing'}
               />
               <SoundSettings />
@@ -296,8 +313,10 @@ export const ChessGame: React.FC = () => {
             />
             
             <AiSettings
-              currentLevel={gameState.aiLevel}
+              currentLevel={gameState.aiLevel as import('../types/game').AiLevel}
+              currentNodes={gameState.aiNodes as import('../types/game').NodesOption}
               onLevelChange={setAiLevel}
+              onNodesChange={setAiNodes}
               disabled={gameState.gameStatus === 'playing'}
             />
 

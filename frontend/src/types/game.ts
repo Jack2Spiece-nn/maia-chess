@@ -9,6 +9,7 @@ export interface GameState {
   gameStatus: GameStatus;
   playerColor: PlayerColor;
   aiLevel: number;
+  aiNodes: number;
   isPlayerTurn: boolean;
   isThinking: boolean;
   moveHistory: string[];
@@ -42,3 +43,14 @@ export const AI_LEVELS = [
 ] as const;
 
 export type AiLevel = typeof AI_LEVELS[number]['value'];
+
+export const NODES_OPTIONS = [
+  { value: 1, label: '1 Node (Fastest)', description: 'Original Maia speed, very fast' },
+  { value: 10, label: '10 Nodes (Fast)', description: 'Slightly stronger, still fast' },
+  { value: 50, label: '50 Nodes (Balanced)', description: 'Good balance of speed and strength' },
+  { value: 100, label: '100 Nodes (Strong)', description: 'Stronger play, slower analysis' },
+  { value: 500, label: '500 Nodes (Very Strong)', description: 'Very strong play, notable delay' },
+  { value: 1000, label: '1000 Nodes (Maximum)', description: 'Maximum strength, slowest' },
+] as const;
+
+export type NodesOption = typeof NODES_OPTIONS[number]['value'];

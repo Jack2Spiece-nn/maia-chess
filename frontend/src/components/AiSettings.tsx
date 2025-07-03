@@ -1,15 +1,18 @@
 import React from 'react';
-import { Brain, Zap, Target, Info } from 'lucide-react';
+import { Brain, Zap } from 'lucide-react';
 import { useDeviceType } from '../hooks/useDeviceType';
-import { useChessSound } from '../hooks/useSound';
 import { clsx } from 'clsx';
+import { AI_LEVELS, NODES_OPTIONS, type AiLevel, type NodesOption } from '../types/game';
 
 interface AiSettingsProps {
-  currentLevel: number; // This is actually the rating now
-  onLevelChange: (rating: number) => void;
-  disabled: boolean;
+  currentLevel: AiLevel;
+  currentNodes: NodesOption;
+  onLevelChange: (level: AiLevel) => void;
+  onNodesChange: (nodes: NodesOption) => void;
+  disabled?: boolean;
 }
 
+// Helper functions for legacy compatibility
 const aiLevels = [
   { level: 1, rating: 1100, description: "Beginner", color: "text-green-500" },
   { level: 2, rating: 1200, description: "Novice", color: "text-green-500" },
@@ -36,22 +39,12 @@ export const getLevelFromRating = (rating: number): number => {
 
 export const AiSettings: React.FC<AiSettingsProps> = ({
   currentLevel,
+  currentNodes,
   onLevelChange,
-  disabled,
+  onNodesChange,
+  disabled = false,
 }) => {
   const { isMobile } = useDeviceType();
-  const { playSound } = useChessSound();
-
-  // currentLevel is actually the rating, so find by rating
-  const currentAi = aiLevels.find(ai => ai.rating === currentLevel) || aiLevels[4];
-  const currentLevelNum = getLevelFromRating(currentLevel);
-
-  const handleLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newLevel = parseInt(event.target.value);
-    const newRating = getRatingFromLevel(newLevel);
-    onLevelChange(newRating); // Send rating instead of level
-    playSound('buttonClick');
-  };
 
   return (
     <div className={clsx(
@@ -59,146 +52,89 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
       isMobile && "game-panel-mobile"
     )}>
       <h3 className={clsx(
-        "font-semibold text-gray-800 flex items-center space-x-2",
+        "font-semibold text-white flex items-center space-x-2",
         isMobile ? "text-base" : "text-lg"
       )}>
-        <Brain className={clsx("w-5 h-5 text-purple-600", isMobile && "w-4 h-4")} />
-        <span>AI Opponent</span>
-        {!disabled && (
-          <Zap className="w-4 h-4 text-yellow-500 animate-pulse" />
-        )}
+        <Brain className={clsx("w-5 h-5 text-purple-400", isMobile && "w-4 h-4")} />
+        <span>AI Settings</span>
       </h3>
 
-      <div className="space-y-4">
-        {/* Current AI Info */}
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-4 space-y-3 border border-purple-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Target className="w-4 h-4 text-purple-600" />
-              <span className="text-sm font-medium text-gray-700">Maia Level {currentLevelNum}</span>
-            </div>
-            <span className={clsx("text-sm font-bold", currentAi.color)}>
-              {currentAi.description}
-            </span>
+      <div className="space-y-6">
+        {/* AI Level Section */}
+        <div>
+          <div className="flex items-center space-x-2 mb-3">
+            <Brain className="w-4 h-4 text-purple-400" />
+            <h4 className="text-sm font-semibold text-white">AI Level</h4>
           </div>
           
-          <div className="grid grid-cols-2 gap-3 text-xs">
-            <div className="text-center">
-              <div className="text-gray-600">Target Rating</div>
-              <div className="text-gray-800 font-bold text-lg">{currentAi.rating}</div>
-            </div>
-            <div className="text-center">
-              <div className="text-gray-600">Playing Style</div>
-              <div className="text-gray-800 font-semibold">Human-like</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Level Slider */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-gray-700">
-              Difficulty Level
-            </label>
-            <div className="flex items-center space-x-1">
-              <Info className="w-3 h-3 text-gray-500" />
-              <span className="text-xs text-gray-500">
-                {disabled ? 'In Game' : 'Adjustable'}
-              </span>
-            </div>
-          </div>
-          
-          <div className="relative">
-            <input
-              type="range"
-              min="1"
-              max="9"
-              value={currentLevelNum}
-              onChange={handleLevelChange}
+          <div className="space-y-2">
+            <select
+              value={currentLevel}
+              onChange={(e) => onLevelChange(Number(e.target.value) as AiLevel)}
               disabled={disabled}
               className={clsx(
-                "skill-slider w-full",
-                disabled && "opacity-50 cursor-not-allowed"
+                "w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white",
+                "focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent",
+                "disabled:opacity-50 disabled:cursor-not-allowed",
+                isMobile ? "text-base" : "text-sm"
               )}
-            />
+            >
+              {AI_LEVELS.map((level) => (
+                <option key={level.value} value={level.value}>
+                  {level.label}
+                </option>
+              ))}
+            </select>
             
-            {/* Level Markers */}
-            <div className="flex justify-between mt-3 px-1">
-              {aiLevels.map((ai) => (
-                <div
-                  key={ai.level}
-                  className={clsx(
-                    "text-xs text-center transition-all duration-200",
-                    ai.level === currentLevelNum
-                      ? `${ai.color} font-bold transform scale-125` 
-                      : "text-gray-400"
-                  )}
-                >
-                  {ai.level}
-                </div>
-              ))}
-            </div>
+            <p className="text-xs text-slate-400">
+              {AI_LEVELS.find(level => level.value === currentLevel)?.description}
+            </p>
           </div>
         </div>
 
-        {/* Quick Level Buttons - Mobile Only */}
-        {isMobile && (
+        {/* Nodes Section */}
+        <div>
+          <div className="flex items-center space-x-2 mb-3">
+            <Zap className="w-4 h-4 text-yellow-400" />
+            <h4 className="text-sm font-semibold text-white">Search Depth</h4>
+          </div>
+          
           <div className="space-y-2">
-            <div className="text-xs text-gray-600 text-center font-medium">Quick Select</div>
-            <div className="grid grid-cols-3 gap-2">
-              {[
-                { level: 1, label: "Easy" },
-                { level: 5, label: "Medium" },
-                { level: 9, label: "Hard" }
-              ].map(({ level, label }) => (
-                <button
-                  key={level}
-                  onClick={() => {
-                    const rating = getRatingFromLevel(level);
-                    onLevelChange(rating); // Send rating instead of level
-                    playSound('buttonClick');
-                  }}
-                  disabled={disabled}
-                  className={clsx(
-                    "py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 touch-feedback shadow-sm",
-                    level === currentLevelNum
-                      ? "ai-level-button active"
-                      : "ai-level-button",
-                    disabled && "opacity-50 cursor-not-allowed"
-                  )}
-                >
-                  {label}
-                </button>
+            <select
+              value={currentNodes}
+              onChange={(e) => onNodesChange(Number(e.target.value) as NodesOption)}
+              className={clsx(
+                "w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white",
+                "focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent",
+                isMobile ? "text-base" : "text-sm"
+              )}
+            >
+              {NODES_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
               ))}
+            </select>
+            
+            <p className="text-xs text-slate-400">
+              {NODES_OPTIONS.find(option => option.value === currentNodes)?.description}
+            </p>
+            
+            <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 mt-3">
+              <p className="text-xs text-blue-300">
+                <strong>Note:</strong> Higher node counts make Maia stronger but slower. 
+                Start with 1 node (original behavior) and increase if you want stronger play.
+              </p>
             </div>
-          </div>
-        )}
-
-        {/* AI Description */}
-        <div className="bg-blue-50 rounded-xl p-3.5 border border-blue-100">
-          <div className="text-xs text-gray-600 leading-relaxed">
-            <strong className="text-gray-800">Maia</strong> is trained on millions of human games 
-            to play like a {currentAi.description.toLowerCase()} player would. Unlike traditional 
-            engines, Maia makes <em className="text-blue-600 font-medium">human-like mistakes</em> and 
-            follows recognizable patterns.
           </div>
         </div>
 
-        {/* Performance Indicator */}
-        {!disabled && (
-          <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
-            <div className="flex space-x-1">
-              {[...Array(3)].map((_, i) => (
-                <div
-                  key={i}
-                  className={clsx(
-                    "w-2 h-2 rounded-full transition-all duration-200",
-                    i < currentLevelNum / 3 ? "bg-purple-500" : "bg-gray-300"
-                  )}
-                />
-              ))}
-            </div>
-            <span>AI Strength</span>
+        {/* Settings Note */}
+        {disabled && (
+          <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3">
+            <p className="text-xs text-yellow-300">
+              AI level can only be changed between games. Node count can be adjusted anytime.
+            </p>
           </div>
         )}
       </div>
