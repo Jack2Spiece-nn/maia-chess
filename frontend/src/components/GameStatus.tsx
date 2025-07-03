@@ -1,6 +1,7 @@
 import React from 'react';
 import { GameState } from '../types/game';
-import { Trophy, Clock, AlertCircle, Crown, User } from 'lucide-react';
+import { Trophy, Clock, AlertCircle, User, Bot } from 'lucide-react';
+import { getLevelFromRating } from './AiSettings';
 
 interface GameStatusProps {
   gameState: GameState;
@@ -37,7 +38,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({ gameState }) => {
       case 'playing':
         return gameState.isPlayerTurn ? 
           <User className="w-5 h-5 text-blue-500" /> : 
-          <Crown className="w-5 h-5 text-purple-500" />;
+          <Bot className="w-5 h-5 text-purple-500 animate-pulse" />;
       case 'stalemate':
       case 'draw':
         return <AlertCircle className="w-5 h-5 text-orange-500" />;
@@ -69,7 +70,7 @@ export const GameStatus: React.FC<GameStatusProps> = ({ gameState }) => {
             {getStatusMessage()}
           </h3>
           <p className="text-sm text-gray-600">
-            Playing as <span className="font-medium">{gameState.playerColor}</span> vs <span className="font-medium">Maia {gameState.aiLevel}</span>
+            Playing as <span className="font-medium capitalize">{gameState.playerColor}</span> vs <span className="font-medium">Maia Level {getLevelFromRating(gameState.aiLevel)} ({gameState.aiLevel})</span>
           </p>
         </div>
       </div>

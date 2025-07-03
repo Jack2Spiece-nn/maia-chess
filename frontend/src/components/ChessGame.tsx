@@ -247,10 +247,10 @@ export const ChessGame: React.FC = () => {
 
           {gameState.isThinking && (
             <div className="mt-4 text-center">
-              <div className="inline-flex items-center space-x-2 bg-blue-500/20 border border-blue-500/30 rounded-lg px-4 py-2">
-                <div className="loading-spinner h-4 w-4"></div>
-                <span className="text-blue-300 text-sm">
-                  {isMobile ? 'Maia thinking...' : 'Maia is thinking...'}
+              <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-lg px-4 py-2 shadow-lg">
+                <div className="animate-spin h-4 w-4 border-2 border-purple-400 border-t-transparent rounded-full"></div>
+                <span className="text-purple-300 text-sm font-medium">
+                  {isMobile ? 'Maia analyzing...' : 'Maia is analyzing the position...'}
                 </span>
               </div>
             </div>
