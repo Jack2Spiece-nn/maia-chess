@@ -30,7 +30,7 @@ export const useChessGame = () => {
     const history = chess.history({ verbose: true });
     const captured: { white: string[], black: string[] } = { white: [], black: [] };
     
-    history.forEach(move => {
+    history.forEach((move: any) => {
       if (move.captured) {
         const piece = move.captured;
         const color = move.color === 'w' ? 'black' : 'white';
