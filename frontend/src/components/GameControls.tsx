@@ -3,6 +3,7 @@ import { GameState, PlayerColor } from '../types/game';
 import { Play, Square, Flag, Palette, Zap } from 'lucide-react';
 import { useDeviceType } from '../hooks/useDeviceType';
 import { useChessSound } from '../hooks/useSound';
+import { getLevelFromRating } from './AiSettings';
 import { clsx } from 'clsx';
 
 interface GameControlsProps {
@@ -109,7 +110,7 @@ export const GameControls: React.FC<GameControlsProps> = ({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-gray-600">AI Level:</span>
-                <span className="text-gray-800 font-semibold">{gameState.aiLevel}</span>
+                <span className="text-gray-800 font-semibold">{getLevelFromRating(gameState.aiLevel)}</span>
               </div>
             </div>
           )}
@@ -171,9 +172,9 @@ export const GameControls: React.FC<GameControlsProps> = ({
           {/* Difficulty Preview */}
           <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-3.5 border border-purple-100">
             <div className="text-xs text-gray-600 text-center">
-              Current AI Level: <span className="text-gray-800 font-semibold">{gameState.aiLevel}</span>
+              Current AI Level: <span className="text-gray-800 font-semibold">{getLevelFromRating(gameState.aiLevel)}</span>
               <br />
-              Estimated Rating: <span className="text-purple-600 font-semibold">{gameState.aiLevel * 100 + 1000}</span>
+              Target Rating: <span className="text-purple-600 font-semibold">{gameState.aiLevel}</span>
             </div>
           </div>
         </div>

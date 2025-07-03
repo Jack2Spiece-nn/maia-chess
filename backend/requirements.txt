@@ -1,8 +1,8 @@
 flask==2.3.3
 python-chess==1.999
 gunicorn==21.2.0
-numpy==1.23.5
-protobuf==3.20.3
+numpy==1.26.4
+protobuf==4.24.4
 pytz
 humanize
 flask-cors==4.0.0

@@ -5,8 +5,8 @@ import { useChessSound } from '../hooks/useSound';
 import { clsx } from 'clsx';
 
 interface AiSettingsProps {
-  currentLevel: number;
-  onLevelChange: (level: number) => void;
+  currentLevel: number; // This is actually the rating now
+  onLevelChange: (rating: number) => void;
   disabled: boolean;
 }
 
@@ -22,6 +22,18 @@ const aiLevels = [
   { level: 9, rating: 1900, description: "Grandmaster", color: "text-purple-500" },
 ];
 
+// Helper function to get rating from level
+export const getRatingFromLevel = (level: number): number => {
+  const aiLevel = aiLevels.find(ai => ai.level === level);
+  return aiLevel ? aiLevel.rating : 1500; // Default to 1500
+};
+
+// Helper function to get level from rating  
+export const getLevelFromRating = (rating: number): number => {
+  const aiLevel = aiLevels.find(ai => ai.rating === rating);
+  return aiLevel ? aiLevel.level : 5; // Default to level 5 (1500)
+};
+
 export const AiSettings: React.FC<AiSettingsProps> = ({
   currentLevel,
   onLevelChange,
@@ -30,11 +42,14 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
   const { isMobile } = useDeviceType();
   const { playSound } = useChessSound();
 
-  const currentAi = aiLevels.find(ai => ai.level === currentLevel) || aiLevels[4];
+  // currentLevel is actually the rating, so find by rating
+  const currentAi = aiLevels.find(ai => ai.rating === currentLevel) || aiLevels[4];
+  const currentLevelNum = getLevelFromRating(currentLevel);
 
   const handleLevelChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const newLevel = parseInt(event.target.value);
-    onLevelChange(newLevel);
+    const newRating = getRatingFromLevel(newLevel);
+    onLevelChange(newRating); // Send rating instead of level
     playSound('buttonClick');
   };
 
@@ -60,7 +75,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Target className="w-4 h-4 text-purple-600" />
-              <span className="text-sm font-medium text-gray-700">Maia Level {currentLevel}</span>
+              <span className="text-sm font-medium text-gray-700">Maia Level {currentLevelNum}</span>
             </div>
             <span className={clsx("text-sm font-bold", currentAi.color)}>
               {currentAi.description}
@@ -98,7 +113,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
               type="range"
               min="1"
               max="9"
-              value={currentLevel}
+              value={currentLevelNum}
               onChange={handleLevelChange}
               disabled={disabled}
               className={clsx(
@@ -114,7 +129,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
                   key={ai.level}
                   className={clsx(
                     "text-xs text-center transition-all duration-200",
-                    ai.level === currentLevel 
+                    ai.level === currentLevelNum
                       ? `${ai.color} font-bold transform scale-125` 
                       : "text-gray-400"
                   )}
@@ -139,13 +154,14 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
                 <button
                   key={level}
                   onClick={() => {
-                    onLevelChange(level);
+                    const rating = getRatingFromLevel(level);
+                    onLevelChange(rating); // Send rating instead of level
                     playSound('buttonClick');
                   }}
                   disabled={disabled}
                   className={clsx(
                     "py-2.5 px-3 rounded-xl text-sm font-medium transition-all duration-200 touch-feedback shadow-sm",
-                    level === currentLevel
+                    level === currentLevelNum
                       ? "ai-level-button active"
                       : "ai-level-button",
                     disabled && "opacity-50 cursor-not-allowed"
@@ -177,7 +193,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
                   key={i}
                   className={clsx(
                     "w-2 h-2 rounded-full transition-all duration-200",
-                    i < currentLevel / 3 ? "bg-purple-500" : "bg-gray-300"
+                    i < currentLevelNum / 3 ? "bg-purple-500" : "bg-gray-300"
                   )}
                 />
               ))}

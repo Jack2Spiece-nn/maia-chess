@@ -8,7 +8,7 @@ export const useChessGame = () => {
     chess: new Chess(),
     gameStatus: 'waiting',
     playerColor: 'white',
-    aiLevel: 1500,
+    aiLevel: 1500, // This now stores the actual rating
     isPlayerTurn: true,
     isThinking: false,
     moveHistory: [],
@@ -118,17 +118,25 @@ export const useChessGame = () => {
 
     } catch (err) {
       console.error('AI move error:', err);
-      let errorMessage = 'Failed to get AI move';
+      let errorMessage = 'Maia is having trouble finding a move. Please try again.';
       
       if (err instanceof Error) {
-        errorMessage = err.message;
+        if (err.message.includes('404')) {
+          errorMessage = 'This AI level is temporarily unavailable. Try selecting a different level.';
+        } else if (err.message.includes('timeout')) {
+          errorMessage = 'Maia is taking too long to respond. Please try again.';
+        } else {
+          errorMessage = err.message;
+        }
       } else if (typeof err === 'object' && err !== null && 'response' in err) {
         // Axios error with response
         const axiosErr = err as any;
-        if (axiosErr.response?.data?.error) {
-          errorMessage = `Backend error: ${axiosErr.response.data.error}`;
+        if (axiosErr.response?.status === 404) {
+          errorMessage = 'This AI level is temporarily unavailable. Try selecting a different level.';
+        } else if (axiosErr.response?.data?.error) {
+          errorMessage = `Maia encountered an issue: ${axiosErr.response.data.error}`;
         } else {
-          errorMessage = `Network error: ${axiosErr.message || 'Unknown error'}`;
+          errorMessage = `Connection issue: ${axiosErr.message || 'Please check your internet connection'}`;
         }
       }
       
@@ -141,14 +149,14 @@ export const useChessGame = () => {
     }
   }, [gameState.aiLevel, updateGameStatus, getCapturedPieces]);
 
-  const startNewGame = useCallback((playerColor: PlayerColor = 'white', aiLevel: number = 1500) => {
+  const startNewGame = useCallback((playerColor: PlayerColor = 'white', aiRating: number = 1500) => {
     const chess = new Chess();
     
     setGameState({
       chess,
       gameStatus: 'playing',
       playerColor,
-      aiLevel,
+      aiLevel: aiRating, // Store the actual rating
       isPlayerTurn: playerColor === 'white',
       isThinking: false,
       moveHistory: [],
@@ -173,8 +181,8 @@ export const useChessGame = () => {
     }));
   }, []);
 
-  const setAiLevel = useCallback((level: number) => {
-    setGameState(prev => ({ ...prev, aiLevel: level }));
+  const setAiLevel = useCallback((rating: number) => {
+    setGameState(prev => ({ ...prev, aiLevel: rating })); // Store the actual rating
   }, []);
 
   return {
