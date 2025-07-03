@@ -5,6 +5,7 @@ Maia Chess Backend API
 A lightweight Flask application that serves as the API for the Maia chess engine.
 """
 
+import os
 from flask import Flask, jsonify, request
 from maia_engine import predict_move
 from flask_cors import CORS
@@ -13,7 +14,17 @@ from flask_cors import CORS
 # served from a different domain/port can access this API without
 # additional proxy configuration.
 app = Flask(__name__)
-CORS(app)  # allow all origins by default; restrict in production if needed
+
+# Configure CORS for render deployment
+if os.environ.get('ENVIRONMENT') == 'production':
+    # Production CORS for render
+    CORS(app, origins=[
+        'https://maia-chess-frontend.onrender.com',
+        'https://maia-chess-frontend-*.onrender.com'  # Handle preview deployments
+    ])
+else:
+    # Development CORS
+    CORS(app)
 
 
 @app.route('/')
@@ -72,9 +83,11 @@ def get_move():
         # Extract nodes (optional, defaults to 1)
         nodes = data.get('nodes', 1)
         
-        # Validate nodes is an integer
+        # Validate nodes is an integer and within valid range
         try:
             nodes = int(nodes)
+            if nodes < 1 or nodes > 10000:
+                return jsonify({'error': 'Nodes must be between 1 and 10000'}), 400
         except (ValueError, TypeError):
             return jsonify({'error': 'Nodes must be an integer'}), 400
         
@@ -96,4 +109,7 @@ def get_move():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Use environment variables for configuration
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('ENVIRONMENT') != 'production'
+    app.run(host='0.0.0.0', port=port, debug=debug)

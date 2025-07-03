@@ -103,6 +103,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
             <select
               value={currentNodes}
               onChange={(e) => onNodesChange(Number(e.target.value) as NodesOption)}
+              disabled={false} // Nodes can be changed anytime
               className={clsx(
                 "w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white",
                 "focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent",
@@ -133,7 +134,7 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
         {disabled && (
           <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-lg p-3">
             <p className="text-xs text-yellow-300">
-              AI level can only be changed between games. Node count can be adjusted anytime.
+              <strong>Game in progress:</strong> AI level locked until next game. Search depth can be adjusted anytime.
             </p>
           </div>
         )}

@@ -4,6 +4,9 @@ services:
     name: maia-chess-backend
     env: docker
     dockerfilePath: backend/Dockerfile
+    envVars:
+      - key: ENVIRONMENT
+        value: production
     plan: free
 
   # Frontend Web Application
