@@ -142,6 +142,122 @@ class TestMaiaBackendAPI(unittest.TestCase):
         self.assertIn('error', data)
         self.assertIn('Model not found', data['error'])
 
+    def test_get_move_endpoint_with_nodes(self):
+        """Test the get_move endpoint with nodes parameter."""
+        payload = {
+            'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'level': 1500,
+            'nodes': 10
+        }
+        response = self.app.post('/get_move', 
+                                json=payload,
+                                content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        
+        data = json.loads(response.data.decode())
+        self.assertIn('move', data)
+        self.assertIn('level', data)
+        self.assertIn('nodes', data)
+        self.assertEqual(data['level'], 1500)
+        self.assertEqual(data['nodes'], 10)
+        # Move should be a valid UCI string (e.g., "e2e4")
+        self.assertIsInstance(data['move'], str)
+        self.assertTrue(len(data['move']) >= 4)
+
+    def test_get_move_endpoint_with_default_nodes(self):
+        """Test the get_move endpoint with default nodes value."""
+        payload = {
+            'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'level': 1500
+        }
+        response = self.app.post('/get_move', 
+                                json=payload,
+                                content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        
+        data = json.loads(response.data.decode())
+        self.assertIn('nodes', data)
+        self.assertEqual(data['nodes'], 1)  # Default nodes
+
+    def test_get_move_endpoint_invalid_nodes_string(self):
+        """Test the get_move endpoint with invalid nodes parameter (string)."""
+        payload = {
+            'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'level': 1500,
+            'nodes': 'invalid_nodes'
+        }
+        response = self.app.post('/get_move', 
+                                json=payload,
+                                content_type='application/json')
+        
+        self.assertEqual(response.status_code, 400)
+        
+        data = json.loads(response.data.decode())
+        self.assertIn('error', data)
+        self.assertIn('Nodes must be an integer', data['error'])
+
+    def test_get_move_endpoint_invalid_nodes_range_low(self):
+        """Test the get_move endpoint with nodes value too low."""
+        payload = {
+            'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'level': 1500,
+            'nodes': 0
+        }
+        response = self.app.post('/get_move', 
+                                json=payload,
+                                content_type='application/json')
+        
+        self.assertEqual(response.status_code, 400)
+        
+        data = json.loads(response.data.decode())
+        self.assertIn('error', data)
+        self.assertIn('Nodes must be an integer between 1 and 10000', data['error'])
+
+    def test_get_move_endpoint_invalid_nodes_range_high(self):
+        """Test the get_move endpoint with nodes value too high."""
+        payload = {
+            'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'level': 1500,
+            'nodes': 10001
+        }
+        response = self.app.post('/get_move', 
+                                json=payload,
+                                content_type='application/json')
+        
+        self.assertEqual(response.status_code, 400)
+        
+        data = json.loads(response.data.decode())
+        self.assertIn('error', data)
+        self.assertIn('Nodes must be an integer between 1 and 10000', data['error'])
+
+    def test_get_move_endpoint_nodes_boundary_values(self):
+        """Test the get_move endpoint with nodes boundary values (1 and 10000)."""
+        # Test minimum value
+        payload = {
+            'fen': 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
+            'level': 1500,
+            'nodes': 1
+        }
+        response = self.app.post('/get_move', 
+                                json=payload,
+                                content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data.decode())
+        self.assertEqual(data['nodes'], 1)
+
+        # Test maximum value
+        payload['nodes'] = 10000
+        response = self.app.post('/get_move', 
+                                json=payload,
+                                content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data.decode())
+        self.assertEqual(data['nodes'], 10000)
+
 
 if __name__ == '__main__':
     unittest.main()

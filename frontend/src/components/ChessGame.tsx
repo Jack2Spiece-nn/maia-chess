@@ -96,11 +96,12 @@ export const ChessGame: React.FC = () => {
   // Mobile layout optimization
   const isMobileLayout = isMobile || (isTablet && orientation === 'portrait');
 
-  const boardSize = isMobile 
-    ? Math.min(window.innerWidth - 32, window.innerHeight - 300)
-    : isTablet 
-    ? Math.min(window.innerWidth * 0.6, window.innerHeight - 200)
-    : undefined;
+  // Remove problematic JavaScript-based board sizing
+  // const boardSize = isMobile 
+  //   ? Math.min(window.innerWidth - 32, window.innerHeight - 300)
+  //   : isTablet 
+  //   ? Math.min(window.innerWidth * 0.6, window.innerHeight - 200)
+  //   : undefined;
 
   // Handle square clicks for click-to-move functionality
   const onSquareClick = (square: string) => {
@@ -197,10 +198,10 @@ export const ChessGame: React.FC = () => {
           )}
           
           <div className={clsx(
-            "mx-auto",
-            isMobile ? "chess-board-mobile" : "chess-board max-w-lg"
+            "mx-auto flex flex-col items-center",
+            isMobile ? "chess-board-container-mobile" : "chess-board-container max-w-lg"
           )}>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4 w-full">
               <button
                 onClick={() => setBoardFlipped(!boardFlipped)}
                 className={clsx(
@@ -213,51 +214,55 @@ export const ChessGame: React.FC = () => {
                 {boardFlipped ? "↑ Flip to White" : "↓ Flip to Black"}
               </button>
             </div>
-            <Chessboard
-              position={gameState.chess.fen()}
-              onPieceDrop={onDrop}
-              onSquareClick={onSquareClick}
-              boardOrientation={boardFlipped ? 'black' : 'white'}
-              arePiecesDraggable={
-                gameState.isPlayerTurn && 
-                gameState.gameStatus === 'playing' && 
-                !gameState.isThinking &&
-                !isTouch // Disable dragging on touch devices
-              }
-              customBoardStyle={{
-                borderRadius: '12px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              }}
-              customDarkSquareStyle={{ 
-                backgroundColor: '#b58863',
-                cursor: 'pointer'
-              }}
-              customLightSquareStyle={{ 
-                backgroundColor: '#f0d9b5',
-                cursor: 'pointer'
-              }}
-              customDropSquareStyle={{
-                boxShadow: 'inset 0 0 1px 6px rgba(255,255,255,0.75)'
-              }}
-              customSquareStyles={{
-                ...(selectedSquare && {
-                  [selectedSquare]: {
-                    backgroundColor: 'rgba(255, 255, 0, 0.4)',
-                    border: '2px solid #FFFF00'
-                  }
-                }),
-                ...possibleMoves.reduce((acc, square) => ({
-                  ...acc,
-                  [square]: {
-                    background: gameState.chess.get(square as any) 
-                      ? 'radial-gradient(circle, rgba(255,0,0,0.3) 85%, transparent 85%)'
-                      : 'radial-gradient(circle, rgba(0,0,0,0.2) 25%, transparent 25%)',
-                    cursor: 'pointer'
-                  }
-                }), {})
-              }}
-              {...(boardSize && { boardWidth: boardSize })}
-            />
+            <div className={clsx(
+              "w-full",
+              isMobile ? "chess-board-wrapper-mobile" : "chess-board-wrapper"
+            )}>
+              <Chessboard
+                position={gameState.chess.fen()}
+                onPieceDrop={onDrop}
+                onSquareClick={onSquareClick}
+                boardOrientation={boardFlipped ? 'black' : 'white'}
+                arePiecesDraggable={
+                  gameState.isPlayerTurn && 
+                  gameState.gameStatus === 'playing' && 
+                  !gameState.isThinking &&
+                  !isTouch // Disable dragging on touch devices
+                }
+                customBoardStyle={{
+                  borderRadius: '12px',
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                }}
+                customDarkSquareStyle={{ 
+                  backgroundColor: '#b58863',
+                  cursor: 'pointer'
+                }}
+                customLightSquareStyle={{ 
+                  backgroundColor: '#f0d9b5',
+                  cursor: 'pointer'
+                }}
+                customDropSquareStyle={{
+                  boxShadow: 'inset 0 0 1px 6px rgba(255,255,255,0.75)'
+                }}
+                customSquareStyles={{
+                  ...(selectedSquare && {
+                    [selectedSquare]: {
+                      backgroundColor: 'rgba(255, 255, 0, 0.4)',
+                      border: '2px solid #FFFF00'
+                    }
+                  }),
+                  ...possibleMoves.reduce((acc, square) => ({
+                    ...acc,
+                    [square]: {
+                      background: gameState.chess.get(square as any) 
+                        ? 'radial-gradient(circle, rgba(255,0,0,0.3) 85%, transparent 85%)'
+                        : 'radial-gradient(circle, rgba(0,0,0,0.2) 25%, transparent 25%)',
+                      cursor: 'pointer'
+                    }
+                  }), {})
+                }}
+              />
+            </div>
           </div>
 
           {gameState.isThinking && (
