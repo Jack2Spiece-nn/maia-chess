@@ -26,7 +26,7 @@ class ApiService {
     headers: {
       'Content-Type': 'application/json',
     },
-    timeout: 10000, // 10 second timeout
+    timeout: 30000, // 30 second timeout for render deployment
   });
 
   /**
@@ -41,12 +41,28 @@ class ApiService {
    * Get the best move from Maia AI for a given position
    */
   async getMove(fen: string, level: number = 1500, nodes: number = 1): Promise<MoveResponse> {
-    const response = await this.apiClient.post<MoveResponse>('/get_move', {
-      fen,
-      level,
-      nodes,
-    });
-    return response.data;
+    try {
+      const response = await this.apiClient.post<MoveResponse>('/get_move', {
+        fen,
+        level,
+        nodes,
+      });
+      return response.data;
+    } catch (error: any) {
+      // Enhanced error handling for render deployment
+      if (error.code === 'ECONNABORTED') {
+        throw new Error('Request timeout - Maia is taking too long to respond');
+      } else if (error.response?.status === 404) {
+        throw new Error(`AI level ${level} is not available`);
+      } else if (error.response?.status === 400) {
+        throw new Error(error.response.data?.error || 'Invalid request parameters');
+      } else if (error.response?.status >= 500) {
+        throw new Error('Maia server is currently unavailable. Please try again.');
+      } else if (error.message?.includes('Network Error')) {
+        throw new Error('Network connection issue. Please check your internet connection.');
+      }
+      throw error;
+    }
   }
 }
 

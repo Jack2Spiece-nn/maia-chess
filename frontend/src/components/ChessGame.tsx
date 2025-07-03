@@ -93,14 +93,31 @@ export const ChessGame: React.FC = () => {
     playSound('gameEnd');
   };
 
-  // Mobile layout optimization
+  // Improved mobile layout detection
   const isMobileLayout = isMobile || (isTablet && orientation === 'portrait');
 
-  const boardSize = isMobile 
-    ? Math.min(window.innerWidth - 32, window.innerHeight - 300)
-    : isTablet 
-    ? Math.min(window.innerWidth * 0.6, window.innerHeight - 200)
-    : undefined;
+  // Simplified and more reliable board size calculation
+  const getBoardSize = () => {
+    if (typeof window === 'undefined') return undefined;
+    
+    if (isMobile) {
+      // For mobile: use 95% of viewport width, with max constraint based on viewport height
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const maxSize = Math.min(vw * 0.95, vh - 200); // Leave space for controls
+      return Math.max(280, maxSize); // Minimum 280px
+    } else if (isTablet) {
+      // For tablets: responsive but not too large
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      return Math.min(vw * 0.6, vh - 150, 600); // Max 600px
+    }
+    
+    // Desktop: let CSS handle it
+    return undefined;
+  };
+
+  const boardSize = getBoardSize();
 
   // Handle square clicks for click-to-move functionality
   const onSquareClick = (square: string) => {
@@ -147,19 +164,19 @@ export const ChessGame: React.FC = () => {
 
   return (
     <div className={clsx(
-      "max-w-7xl mx-auto",
-      isMobileLayout ? "flex flex-col" : "grid grid-cols-1 lg:grid-cols-3 gap-8"
+      "w-full max-w-7xl mx-auto",
+      isMobileLayout ? "flex flex-col min-h-screen" : "grid grid-cols-1 lg:grid-cols-3 gap-8"
     )}>
       {/* Mobile Header - Only on mobile */}
       {isMobileLayout && (
-        <div className="px-4 py-2">
+        <div className="px-4 py-3 flex-shrink-0">
           <GameStatus gameState={gameState} />
           {error && (
-            <div className="mt-2 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-300 text-sm">
+            <div className="mt-3 p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-300 text-sm">
               <p>{error}</p>
               <button
                 onClick={clearError}
-                className="mt-1 text-xs bg-red-500/30 hover:bg-red-500/40 px-2 py-1 rounded button-touch"
+                className="mt-2 text-xs bg-red-500/30 hover:bg-red-500/40 px-2 py-1 rounded button-touch"
               >
                 Dismiss
               </button>
@@ -170,11 +187,11 @@ export const ChessGame: React.FC = () => {
 
       {/* Chess Board */}
       <div className={clsx(
-        isMobileLayout ? "order-1" : "lg:col-span-2"
+        isMobileLayout ? "flex-1 flex flex-col justify-center px-2" : "lg:col-span-2"
       )}>
         <div className={clsx(
           "game-panel",
-          isMobileLayout ? "game-panel-mobile mx-2" : "",
+          isMobileLayout ? "game-panel-mobile flex-shrink-0" : "",
           lastMove && "move-highlight",
           capturedPiece && "capture-animation"
         )}>
@@ -196,9 +213,10 @@ export const ChessGame: React.FC = () => {
             </div>
           )}
           
+          {/* Board Container with improved sizing */}
           <div className={clsx(
-            "mx-auto",
-            isMobile ? "chess-board-mobile" : "chess-board max-w-lg"
+            "w-full mx-auto",
+            isMobile ? "max-w-none" : "max-w-lg"
           )}>
             <div className="flex justify-between items-center mb-4">
               <button
@@ -213,51 +231,58 @@ export const ChessGame: React.FC = () => {
                 {boardFlipped ? "↑ Flip to White" : "↓ Flip to Black"}
               </button>
             </div>
-            <Chessboard
-              position={gameState.chess.fen()}
-              onPieceDrop={onDrop}
-              onSquareClick={onSquareClick}
-              boardOrientation={boardFlipped ? 'black' : 'white'}
-              arePiecesDraggable={
-                gameState.isPlayerTurn && 
-                gameState.gameStatus === 'playing' && 
-                !gameState.isThinking &&
-                !isTouch // Disable dragging on touch devices
-              }
-              customBoardStyle={{
-                borderRadius: '12px',
-                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-              }}
-              customDarkSquareStyle={{ 
-                backgroundColor: '#b58863',
-                cursor: 'pointer'
-              }}
-              customLightSquareStyle={{ 
-                backgroundColor: '#f0d9b5',
-                cursor: 'pointer'
-              }}
-              customDropSquareStyle={{
-                boxShadow: 'inset 0 0 1px 6px rgba(255,255,255,0.75)'
-              }}
-              customSquareStyles={{
-                ...(selectedSquare && {
-                  [selectedSquare]: {
-                    backgroundColor: 'rgba(255, 255, 0, 0.4)',
-                    border: '2px solid #FFFF00'
-                  }
-                }),
-                ...possibleMoves.reduce((acc, square) => ({
-                  ...acc,
-                  [square]: {
-                    background: gameState.chess.get(square as any) 
-                      ? 'radial-gradient(circle, rgba(255,0,0,0.3) 85%, transparent 85%)'
-                      : 'radial-gradient(circle, rgba(0,0,0,0.2) 25%, transparent 25%)',
-                    cursor: 'pointer'
-                  }
-                }), {})
-              }}
-              {...(boardSize && { boardWidth: boardSize })}
-            />
+            
+            {/* Chessboard with improved responsive sizing */}
+            <div className={clsx(
+              "chess-board-container",
+              isMobile && "w-full flex justify-center"
+            )}>
+              <Chessboard
+                position={gameState.chess.fen()}
+                onPieceDrop={onDrop}
+                onSquareClick={onSquareClick}
+                boardOrientation={boardFlipped ? 'black' : 'white'}
+                arePiecesDraggable={
+                  gameState.isPlayerTurn && 
+                  gameState.gameStatus === 'playing' && 
+                  !gameState.isThinking &&
+                  !isTouch // Disable dragging on touch devices
+                }
+                customBoardStyle={{
+                  borderRadius: '12px',
+                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                }}
+                customDarkSquareStyle={{ 
+                  backgroundColor: '#b58863',
+                  cursor: 'pointer'
+                }}
+                customLightSquareStyle={{ 
+                  backgroundColor: '#f0d9b5',
+                  cursor: 'pointer'
+                }}
+                customDropSquareStyle={{
+                  boxShadow: 'inset 0 0 1px 6px rgba(255,255,255,0.75)'
+                }}
+                customSquareStyles={{
+                  ...(selectedSquare && {
+                    [selectedSquare]: {
+                      backgroundColor: 'rgba(255, 255, 0, 0.4)',
+                      border: '2px solid #FFFF00'
+                    }
+                  }),
+                  ...possibleMoves.reduce((acc, square) => ({
+                    ...acc,
+                    [square]: {
+                      background: gameState.chess.get(square as any) 
+                        ? 'radial-gradient(circle, rgba(255,0,0,0.3) 85%, transparent 85%)'
+                        : 'radial-gradient(circle, rgba(0,0,0,0.2) 25%, transparent 25%)',
+                      cursor: 'pointer'
+                    }
+                  }), {})
+                }}
+                {...(boardSize && { boardWidth: boardSize })}
+              />
+            </div>
           </div>
 
           {gameState.isThinking && (
@@ -275,19 +300,19 @@ export const ChessGame: React.FC = () => {
 
       {/* Game Controls & Info */}
       <div className={clsx(
-        "space-y-4",
-        isMobileLayout ? "order-2 px-2 pb-4" : ""
+        "flex-shrink-0",
+        isMobileLayout ? "px-3 pb-4 space-y-3" : "space-y-4"
       )}>
         {/* Mobile Optimized Controls */}
         {isMobileLayout ? (
-          <div className="grid grid-cols-1 gap-4">
+          <div className="grid grid-cols-1 gap-3">
             <GameControls
               gameState={gameState}
               onNewGame={handleNewGame}
               onResign={handleResign}
             />
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <AiSettings
                 currentLevel={gameState.aiLevel as import('../types/game').AiLevel}
                 currentNodes={gameState.aiNodes as import('../types/game').NodesOption}

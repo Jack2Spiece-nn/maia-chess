@@ -5,6 +5,8 @@ Maia Chess Backend API
 A lightweight Flask application that serves as the API for the Maia chess engine.
 """
 
+import os
+import re
 from flask import Flask, jsonify, request
 from maia_engine import predict_move
 from flask_cors import CORS
@@ -13,8 +15,55 @@ from flask_cors import CORS
 # served from a different domain/port can access this API without
 # additional proxy configuration.
 app = Flask(__name__)
-CORS(app)  # allow all origins by default; restrict in production if needed
 
+def is_valid_render_origin(origin):
+    """
+    Check if the origin is a valid Render deployment URL.
+    Supports both main deployment and preview deployment patterns.
+    """
+    if not origin:
+        return False
+    
+    # Main deployment URL
+    if origin == 'https://maia-chess-frontend.onrender.com':
+        return True
+    
+    # Preview deployment pattern: https://maia-chess-frontend-pr-123.onrender.com
+    # or other patterns like: https://maia-chess-frontend-abc123.onrender.com
+    preview_pattern = r'^https://maia-chess-frontend-[a-zA-Z0-9\-]+\.onrender\.com$'
+    if re.match(preview_pattern, origin):
+        return True
+    
+    return False
+
+# Configure CORS for render deployment
+@app.after_request
+def after_request(response):
+    """Custom CORS handling for Render deployments."""
+    origin = request.headers.get('Origin')
+    
+    if os.environ.get('ENVIRONMENT') == 'production':
+        # Production: only allow Render deployment URLs
+        if origin and is_valid_render_origin(origin):
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    else:
+        # Development: allow all origins
+        if origin:
+            response.headers['Access-Control-Allow-Origin'] = origin
+            response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+            response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+    
+    return response
+
+# Basic CORS setup for OPTIONS requests
+CORS(app, supports_credentials=False)
+
+@app.route('/get_move', methods=['OPTIONS'])
+def handle_options():
+    """Handle preflight OPTIONS requests for CORS."""
+    return '', 204
 
 @app.route('/')
 def health_check():
@@ -72,9 +121,11 @@ def get_move():
         # Extract nodes (optional, defaults to 1)
         nodes = data.get('nodes', 1)
         
-        # Validate nodes is an integer
+        # Validate nodes is an integer and within valid range
         try:
             nodes = int(nodes)
+            if nodes < 1 or nodes > 10000:
+                return jsonify({'error': 'Nodes must be between 1 and 10000'}), 400
         except (ValueError, TypeError):
             return jsonify({'error': 'Nodes must be an integer'}), 400
         
@@ -96,4 +147,7 @@ def get_move():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    # Use environment variables for configuration
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('ENVIRONMENT') != 'production'
+    app.run(host='0.0.0.0', port=port, debug=debug)
