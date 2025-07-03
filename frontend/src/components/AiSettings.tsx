@@ -1,8 +1,17 @@
-import React from 'react';
-import { Brain, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Brain, Zap, Settings } from 'lucide-react';
 import { useDeviceType } from '../hooks/useDeviceType';
 import { clsx } from 'clsx';
-import { AI_LEVELS, NODES_OPTIONS, type AiLevel, type NodesOption } from '../types/game';
+import { 
+  AI_LEVELS, 
+  NODES_PRESETS, 
+  NODES_MIN, 
+  NODES_MAX, 
+  isValidNodeCount, 
+  getNodeDescription,
+  type AiLevel, 
+  type NodesOption 
+} from '../types/game';
 
 interface AiSettingsProps {
   currentLevel: AiLevel;
@@ -45,6 +54,62 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
   disabled = false,
 }) => {
   const { isMobile } = useDeviceType();
+  const [useCustomNodes, setUseCustomNodes] = useState(false);
+  const [customNodeValue, setCustomNodeValue] = useState<string>(currentNodes.toString());
+  const [nodeError, setNodeError] = useState<string>('');
+
+  // Check if current nodes value is in presets
+  useEffect(() => {
+    const isPreset = NODES_PRESETS.some(preset => preset.value === currentNodes);
+    setUseCustomNodes(!isPreset);
+    setCustomNodeValue(currentNodes.toString());
+  }, [currentNodes]);
+
+  const handlePresetChange = (value: string) => {
+    if (value === 'custom') {
+      setUseCustomNodes(true);
+      setCustomNodeValue(currentNodes.toString());
+    } else {
+      setUseCustomNodes(false);
+      const nodeValue = parseInt(value);
+      onNodesChange(nodeValue);
+      setNodeError('');
+    }
+  };
+
+  const handleCustomNodeChange = (value: string) => {
+    setCustomNodeValue(value);
+    
+    // Clear error initially
+    setNodeError('');
+    
+    // Validate the input
+    const numValue = parseInt(value);
+    
+    if (value === '') {
+      setNodeError('Node count is required');
+      return;
+    }
+    
+    if (isNaN(numValue)) {
+      setNodeError('Node count must be a number');
+      return;
+    }
+    
+    if (!isValidNodeCount(numValue)) {
+      setNodeError(`Node count must be between ${NODES_MIN} and ${NODES_MAX}`);
+      return;
+    }
+    
+    // Valid input - update the nodes
+    onNodesChange(numValue);
+  };
+
+  const getCurrentPresetValue = () => {
+    if (useCustomNodes) return 'custom';
+    const preset = NODES_PRESETS.find(p => p.value === currentNodes);
+    return preset ? preset.value.toString() : 'custom';
+  };
 
   return (
     <div className={clsx(
@@ -99,31 +164,78 @@ export const AiSettings: React.FC<AiSettingsProps> = ({
             <h4 className="text-sm font-semibold text-white">Search Depth</h4>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-3">
+            {/* Preset Selection */}
             <select
-              value={currentNodes}
-              onChange={(e) => onNodesChange(Number(e.target.value) as NodesOption)}
+              value={getCurrentPresetValue()}
+              onChange={(e) => handlePresetChange(e.target.value)}
               className={clsx(
                 "w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white",
                 "focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent",
                 isMobile ? "text-base" : "text-sm"
               )}
             >
-              {NODES_OPTIONS.map((option) => (
+              {NODES_PRESETS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
               ))}
+              <option value="custom">Custom Value...</option>
             </select>
+
+            {/* Custom Input */}
+            {useCustomNodes && (
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Settings className="w-4 h-4 text-yellow-400" />
+                  <label className="text-sm text-white font-medium">
+                    Custom Node Count
+                  </label>
+                </div>
+                <input
+                  type="number"
+                  min={NODES_MIN}
+                  max={NODES_MAX}
+                  value={customNodeValue}
+                  onChange={(e) => handleCustomNodeChange(e.target.value)}
+                  placeholder={`Enter value (${NODES_MIN}-${NODES_MAX})`}
+                  className={clsx(
+                    "w-full px-3 py-2 bg-slate-800 border rounded-lg text-white",
+                    "focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent",
+                    nodeError 
+                      ? "border-red-500 focus:ring-red-500" 
+                      : "border-slate-600",
+                    isMobile ? "text-base" : "text-sm"
+                  )}
+                />
+                {nodeError && (
+                  <p className="text-xs text-red-400">{nodeError}</p>
+                )}
+              </div>
+            )}
             
+            {/* Description */}
             <p className="text-xs text-slate-400">
-              {NODES_OPTIONS.find(option => option.value === currentNodes)?.description}
+              {nodeError ? (
+                <span className="text-red-400">Please enter a valid node count</span>
+              ) : (
+                getNodeDescription(currentNodes)
+              )}
             </p>
             
-            <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3 mt-3">
+            {/* Info Box */}
+            <div className="bg-blue-500/20 border border-blue-500/30 rounded-lg p-3">
               <p className="text-xs text-blue-300">
-                <strong>Note:</strong> Higher node counts make Maia stronger but slower. 
-                Start with 1 node (original behavior) and increase if you want stronger play.
+                <strong>Node Count:</strong> {currentNodes.toLocaleString()} nodes
+                <br />
+                <strong>Range:</strong> {NODES_MIN.toLocaleString()} - {NODES_MAX.toLocaleString()} nodes
+                <br />
+                <strong>Note:</strong> Higher values make Maia stronger but much slower.
+                {currentNodes >= 1000 && (
+                  <span className="text-yellow-300">
+                    <br />⚠️ Values above 1000 may cause significant delays.
+                  </span>
+                )}
               </p>
             </div>
           </div>
