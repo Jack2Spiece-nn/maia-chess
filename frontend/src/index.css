@@ -103,22 +103,59 @@
     background: white;
   }
 
+  /* Chess board container - improved responsive layout */
+  .chess-board-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .chess-board-container-mobile {
+    width: 100%;
+    max-width: min(100vw - 1rem, calc(100vh - 280px));
+    margin: 0 auto;
+    padding: 0 0.5rem;
+  }
+
+  /* Chess board wrapper - ensures proper aspect ratio */
+  .chess-board-wrapper {
+    width: 100%;
+    aspect-ratio: 1;
+    position: relative;
+  }
+
+  .chess-board-wrapper-mobile {
+    width: 100%;
+    aspect-ratio: 1;
+    position: relative;
+    max-width: min(calc(100vw - 1rem), calc(100vh - 280px));
+    margin: 0 auto;
+  }
+
+  /* Legacy class - kept for backward compatibility but improved */
   .chess-board-mobile {
     @apply chess-board;
-    width: calc(100vw - 1rem);
-    max-width: calc(100vw - 1rem);
-    height: auto;
+    width: 100%;
+    max-width: min(calc(100vw - 1rem), calc(100vh - 280px));
     aspect-ratio: 1;
     margin: 0 auto;
     box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3);
-    max-height: calc(100vh - 300px);
-    min-width: 280px;
   }
 
   @media (max-width: 768px) {
-    .chess-board {
-      width: 100%;
-      max-width: min(calc(100vw - 1rem), calc(100vh - 280px));
+    .chess-board-container {
+      max-width: min(calc(100vw - 1rem), calc(100vh - 260px));
+      padding: 0 0.5rem;
+    }
+    
+    .chess-board-container-mobile {
+      max-width: min(calc(100vw - 1rem), calc(100vh - 240px));
+      padding: 0 0.25rem;
+    }
+
+    .chess-board-wrapper,
+    .chess-board-wrapper-mobile {
+      max-width: min(calc(100vw - 1rem), calc(100vh - 240px));
     }
     
     .mobile-chess-container {
@@ -151,10 +188,9 @@
   }
 
   @media (max-width: 480px) {
-    .chess-board-mobile {
-      width: calc(100vw - 0.5rem);
-      max-width: calc(100vw - 0.5rem);
-      max-height: calc(100vh - 240px);
+    .chess-board-container-mobile,
+    .chess-board-wrapper-mobile {
+      max-width: min(calc(100vw - 0.5rem), calc(100vh - 220px));
     }
     
     .mobile-controls {
@@ -166,6 +202,14 @@
       margin: 0.125rem;
       padding: 0.5rem;
     }
+  }
+
+  /* Ensure chess board is properly sized within wrappers */
+  .chess-board-wrapper > div,
+  .chess-board-wrapper-mobile > div {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1;
   }
   
   .game-panel {
