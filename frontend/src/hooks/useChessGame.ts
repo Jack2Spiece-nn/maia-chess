@@ -9,6 +9,7 @@ export const useChessGame = () => {
     gameStatus: 'waiting',
     playerColor: 'white',
     aiLevel: 1500, // This now stores the actual rating
+    aiNodes: 1, // Default to 1 node for original Maia behavior
     isPlayerTurn: true,
     isThinking: false,
     moveHistory: [],
@@ -87,7 +88,7 @@ export const useChessGame = () => {
     setError(null);
 
     try {
-      const response = await apiService.getMove(chess.fen(), gameState.aiLevel);
+      const response = await apiService.getMove(chess.fen(), gameState.aiLevel, gameState.aiNodes);
       
       // Check if response contains an error
       if (!response || !response.move) {
@@ -147,22 +148,23 @@ export const useChessGame = () => {
         isPlayerTurn: true,
       }));
     }
-  }, [gameState.aiLevel, updateGameStatus, getCapturedPieces]);
+  }, [gameState.aiLevel, gameState.aiNodes, updateGameStatus, getCapturedPieces]);
 
   const startNewGame = useCallback((playerColor: PlayerColor = 'white', aiRating: number = 1500) => {
     const chess = new Chess();
     
-    setGameState({
+    setGameState(prev => ({
       chess,
       gameStatus: 'playing',
       playerColor,
       aiLevel: aiRating, // Store the actual rating
+      aiNodes: prev.aiNodes, // Preserve current nodes setting
       isPlayerTurn: playerColor === 'white',
       isThinking: false,
       moveHistory: [],
       capturedPieces: { white: [], black: [] },
       lastMove: null,
-    });
+    }));
     
     setError(null);
 
@@ -185,6 +187,10 @@ export const useChessGame = () => {
     setGameState(prev => ({ ...prev, aiLevel: rating })); // Store the actual rating
   }, []);
 
+  const setAiNodes = useCallback((nodes: number) => {
+    setGameState(prev => ({ ...prev, aiNodes: nodes }));
+  }, []);
+
   return {
     gameState,
     error,
@@ -192,6 +198,7 @@ export const useChessGame = () => {
     startNewGame,
     resignGame,
     setAiLevel,
+    setAiNodes,
     clearError: () => setError(null),
   };
 };

@@ -77,13 +77,17 @@ def _get_engine(level: int) -> chess.engine.SimpleEngine:
     return engine
 
 
-def predict_move(fen_string: str, level: int = 1500) -> str:  # noqa: D401
+def predict_move(fen_string: str, level: int = 1500, nodes: int = 1) -> str:  # noqa: D401
     """Return Maia's best move for *fen_string* at the given Elo *level*.
 
     The function spawns (or reuses) an lc0 engine loaded with the corresponding
-    Maia network and asks for a 1-node search – exactly how the original Maia
-    paper evaluated the models.  This keeps latency low (~50-70 ms) and memory
-    well inside Render's free limits.
+    Maia network and asks for a configurable node search. Higher node counts
+    will make Maia stronger but take longer to compute.
+    
+    Args:
+        fen_string: FEN position string
+        level: Elo level (1100-1900)
+        nodes: Number of nodes to search (default 1, can be 1-10000)
     """
 
     board: chess.Board
@@ -95,11 +99,15 @@ def predict_move(fen_string: str, level: int = 1500) -> str:  # noqa: D401
     if board.is_game_over():
         raise ValueError("No legal moves available in the given position")
 
+    # Validate nodes parameter
+    if not isinstance(nodes, int) or nodes < 1 or nodes > 10000:
+        raise ValueError("Nodes must be an integer between 1 and 10000")
+
     engine = _get_engine(level)
 
     try:
-        # nodes=1 reproduces the behaviour used on lichess Maia bots
-        result = engine.play(board, chess.engine.Limit(nodes=1))
+        # Use configurable nodes instead of hardcoded 1
+        result = engine.play(board, chess.engine.Limit(nodes=nodes))
     except chess.engine.EngineError as exc:
         raise RuntimeError(f"lc0 engine error: {exc}") from exc
 

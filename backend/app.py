@@ -34,13 +34,15 @@ def get_move():
     Expected JSON payload:
     {
         "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        "level": 1500  # optional, defaults to 1500
+        "level": 1500,  # optional, defaults to 1500
+        "nodes": 1      # optional, defaults to 1, can be 1-10000
     }
     
     Returns:
     {
         "move": "e2e4",
-        "level": 1500
+        "level": 1500,
+        "nodes": 1
     }
     """
     try:
@@ -67,12 +69,22 @@ def get_move():
         except (ValueError, TypeError):
             return jsonify({'error': 'Level must be an integer'}), 400
         
+        # Extract nodes (optional, defaults to 1)
+        nodes = data.get('nodes', 1)
+        
+        # Validate nodes is an integer
+        try:
+            nodes = int(nodes)
+        except (ValueError, TypeError):
+            return jsonify({'error': 'Nodes must be an integer'}), 400
+        
         # Get the predicted move
-        move = predict_move(fen, level)
+        move = predict_move(fen, level, nodes)
         
         return jsonify({
             'move': move,
-            'level': level
+            'level': level,
+            'nodes': nodes
         })
         
     except FileNotFoundError as e:
