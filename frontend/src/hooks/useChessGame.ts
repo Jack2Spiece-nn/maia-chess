@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Chess } from 'chess.js';
 import { GameState, GameStatus, PlayerColor } from '../types/game';
-import { apiService } from '../services/api';
+import { maiaApi } from '../services/api';
 import { usePerformanceMonitor } from './usePerformanceMonitor';
 
 export const useChessGame = () => {
@@ -93,7 +93,11 @@ export const useChessGame = () => {
     try {
       // Track API call performance
       const response = await trackApiCall(
-        apiService.getMove(chess.fen(), gameState.aiLevel, gameState.aiNodes),
+        maiaApi.getMove({
+          fen: chess.fen(),
+          level: gameState.aiLevel,
+          nodes: gameState.aiNodes
+        }),
         'move'
       );
       

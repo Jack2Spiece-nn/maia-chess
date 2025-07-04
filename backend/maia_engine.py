@@ -57,10 +57,130 @@ _engine_stats = {
     'move_counts': {},    # level -> number of moves computed
     'total_compute_time': {},  # level -> total computation time
     'last_used': {},      # level -> last usage timestamp
+    'memory_usage': {},   # level -> memory usage tracking
+    'validation_metrics': []  # validation performance history
 }
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Memory monitoring
+def get_memory_usage():
+    """Get current memory usage in MB"""
+    try:
+        import psutil
+        return psutil.Process(os.getpid()).memory_info().rss / 1024 / 1024
+    except ImportError:
+        return 0.0
+
+def validate_engine_performance(level: int = 1500) -> Dict[str, Any]:
+    """Log detailed engine performance metrics for validation"""
+    start_time = time.time()
+    memory_before = get_memory_usage()
+    
+    try:
+        # Test move with timing
+        move = predict_move("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", level, 1)
+        
+        end_time = time.time()
+        memory_after = get_memory_usage()
+        
+        metrics = {
+            'move_calculation_time_ms': (end_time - start_time) * 1000,
+            'memory_usage_mb': memory_after,
+            'memory_delta_mb': memory_after - memory_before,
+            'engine_cached': level in _engine_cache,
+            'move': move,
+            'level': level,
+            'timestamp': time.time(),
+            'success': True
+        }
+        
+        # Store validation metrics
+        _engine_stats['validation_metrics'].append(metrics)
+        # Keep only last 100 validation runs
+        if len(_engine_stats['validation_metrics']) > 100:
+            _engine_stats['validation_metrics'] = _engine_stats['validation_metrics'][-100:]
+        
+        validation_logger.info(f"ENGINE_VALIDATION: {metrics}")
+        return metrics
+        
+    except Exception as e:
+        end_time = time.time()
+        memory_after = get_memory_usage()
+        
+        error_metrics = {
+            'move_calculation_time_ms': (end_time - start_time) * 1000,
+            'memory_usage_mb': memory_after,
+            'memory_delta_mb': memory_after - memory_before,
+            'engine_cached': level in _engine_cache,
+            'error': str(e),
+            'level': level,
+            'timestamp': time.time(),
+            'success': False
+        }
+        
+        validation_logger.error(f"ENGINE_VALIDATION_ERROR: {error_metrics}")
+        return error_metrics
+
+def warm_engines(levels=None):
+    """Pre-warm engines for common difficulty levels"""
+    if levels is None:
+        levels = [1100, 1500, 1900]  # Popular levels
+    
+    logger.info(f"Starting engine warm-up for levels: {levels}")
+    warm_start_time = time.time()
+    
+    for level in levels:
+        try:
+            level_start = time.time()
+            _get_engine(level)
+            level_time = time.time() - level_start
+            logger.info(f"Pre-warmed engine for level {level} in {level_time*1000:.2f}ms")
+            validation_logger.info(f"ENGINE_WARMUP: level={level}, time_ms={level_time*1000:.2f}")
+        except Exception as e:
+            logger.error(f"Failed to pre-warm engine {level}: {e}")
+            validation_logger.error(f"ENGINE_WARMUP_ERROR: level={level}, error={str(e)}")
+    
+    total_warm_time = time.time() - warm_start_time
+    logger.info(f"Engine warm-up completed in {total_warm_time*1000:.2f}ms")
+
+def monitor_memory_usage():
+    """Monitor and optimize memory usage"""
+    memory_usage = get_memory_usage()
+    
+    # Log memory usage
+    validation_logger.info(f"MEMORY_USAGE: total_mb={memory_usage:.2f}, engines={len(_engine_cache)}")
+    
+    # Check if memory usage is high (threshold for 512MB free tier)
+    if memory_usage > 400:  # Leave some headroom
+        logger.warning(f"High memory usage: {memory_usage:.2f}MB")
+        validation_logger.warning(f"HIGH_MEMORY_WARNING: usage_mb={memory_usage:.2f}")
+        
+        # Trigger cleanup if too many engines are cached
+        if len(_engine_cache) > 2:
+            cleanup_unused_engines()
+    
+    return memory_usage
+
+def cleanup_unused_engines(max_age_seconds: int = 300):
+    """Clean up engines that haven't been used recently"""
+    current_time = time.time()
+    engines_to_remove = []
+    
+    for level, last_used_time in _engine_stats['last_used'].items():
+        if current_time - last_used_time > max_age_seconds:
+            engines_to_remove.append(level)
+    
+    for level in engines_to_remove:
+        if level in _engine_cache:
+            try:
+                _engine_cache[level].quit()
+                del _engine_cache[level]
+                logger.info(f"Cleaned up unused engine for level {level}")
+                validation_logger.info(f"ENGINE_CLEANUP: level={level}, age_seconds={current_time - _engine_stats['last_used'][level]:.1f}")
+            except Exception as e:
+                logger.error(f"Error cleaning up engine {level}: {e}")
 
 
 def _get_weights_path(level: int) -> str:
@@ -83,6 +203,7 @@ def _get_engine(level: int) -> chess.engine.SimpleEngine:
 
     logger.info(f"Creating new engine for level {level}")
     startup_start = time.time()
+    memory_before = get_memory_usage()
 
     weights_path = _get_weights_path(level)
 
@@ -112,14 +233,18 @@ def _get_engine(level: int) -> chess.engine.SimpleEngine:
         engine = _RandomEngine()
 
     startup_time = time.time() - startup_start
+    memory_after = get_memory_usage()
+    memory_delta = memory_after - memory_before
     
     # Record engine statistics
     _engine_stats['startup_times'][level] = startup_time
     _engine_stats['move_counts'][level] = 0
     _engine_stats['total_compute_time'][level] = 0.0
     _engine_stats['last_used'][level] = time.time()
+    _engine_stats['memory_usage'][level] = memory_delta
     
-    logger.info(f"Engine for level {level} started in {startup_time*1000:.2f}ms")
+    logger.info(f"Engine for level {level} started in {startup_time*1000:.2f}ms, memory: +{memory_delta:.2f}MB")
+    validation_logger.info(f"ENGINE_STARTUP: level={level}, time_ms={startup_time*1000:.2f}, memory_delta_mb={memory_delta:.2f}")
 
     _engine_cache[level] = engine
     return engine
@@ -138,6 +263,7 @@ def predict_move(fen_string: str, level: int = 1500, nodes: int = 1) -> str:  # 
         nodes: Number of nodes to search (default 1, can be 1-10000)
     """
     computation_start = time.time()
+    memory_before = get_memory_usage()
 
     board: chess.Board
     try:
@@ -152,8 +278,9 @@ def predict_move(fen_string: str, level: int = 1500, nodes: int = 1) -> str:  # 
     if not isinstance(nodes, int) or nodes < 1 or nodes > 10000:
         raise ValueError("Nodes must be an integer between 1 and 10000")
 
-    # Log move request
+    # Log move request with validation
     logger.debug(f"Computing move for level {level}, nodes {nodes}, position: {fen_string[:30]}...")
+    validation_logger.info(f"MOVE_REQUEST: level={level}, nodes={nodes}, fen_start={fen_string[:20]}")
 
     engine = _get_engine(level)
     
@@ -164,14 +291,17 @@ def predict_move(fen_string: str, level: int = 1500, nodes: int = 1) -> str:  # 
         result = engine.play(board, chess.engine.Limit(nodes=nodes))
     except chess.engine.EngineError as exc:
         logger.error(f"Engine error for level {level}: {exc}")
+        validation_logger.error(f"ENGINE_ERROR: level={level}, error={str(exc)}")
         raise RuntimeError(f"lc0 engine error: {exc}") from exc
 
     if result.move is None:
         logger.error(f"Engine returned no move for level {level}")
+        validation_logger.error(f"NO_MOVE_ERROR: level={level}")
         raise RuntimeError("Engine returned no move")
 
     move_computation_time = time.time() - move_computation_start
     total_time = time.time() - computation_start
+    memory_after = get_memory_usage()
 
     # Update engine statistics
     if level not in _engine_stats['move_counts']:
@@ -182,8 +312,13 @@ def predict_move(fen_string: str, level: int = 1500, nodes: int = 1) -> str:  # 
     _engine_stats['total_compute_time'][level] += move_computation_time
     _engine_stats['last_used'][level] = time.time()
 
+    # Enhanced logging with validation metrics
     logger.info(f"Move computed: {result.move.uci()}, Level: {level}, Nodes: {nodes}, "
                f"Engine time: {move_computation_time*1000:.2f}ms, Total: {total_time*1000:.2f}ms")
+    
+    validation_logger.info(f"MOVE_COMPUTED: move={result.move.uci()}, level={level}, nodes={nodes}, "
+                          f"engine_time_ms={move_computation_time*1000:.2f}, total_time_ms={total_time*1000:.2f}, "
+                          f"memory_mb={memory_after:.2f}")
 
     return result.move.uci()
 
@@ -191,6 +326,8 @@ def predict_move(fen_string: str, level: int = 1500, nodes: int = 1) -> str:  # 
 def get_engine_stats() -> dict:
     """Return engine performance statistics."""
     stats = {}
+    current_memory = get_memory_usage()
+    
     for level in _engine_cache.keys():
         move_count = _engine_stats['move_counts'].get(level, 0)
         total_time = _engine_stats['total_compute_time'].get(level, 0.0)
@@ -201,14 +338,28 @@ def get_engine_stats() -> dict:
             'total_compute_time_ms': round(total_time * 1000, 2),
             'average_move_time_ms': round((total_time / move_count * 1000) if move_count > 0 else 0, 2),
             'last_used_ago_seconds': round(time.time() - _engine_stats['last_used'].get(level, 0), 2),
+            'memory_usage_mb': _engine_stats['memory_usage'].get(level, 0),
             'is_cached': True
+        }
+    
+    # Include validation metrics summary
+    validation_summary = {}
+    if _engine_stats['validation_metrics']:
+        recent_validations = _engine_stats['validation_metrics'][-10:]  # Last 10 validations
+        validation_summary = {
+            'recent_validations_count': len(recent_validations),
+            'avg_response_time_ms': sum(v['move_calculation_time_ms'] for v in recent_validations if v['success']) / len([v for v in recent_validations if v['success']]) if any(v['success'] for v in recent_validations) else 0,
+            'success_rate': len([v for v in recent_validations if v['success']]) / len(recent_validations) if recent_validations else 0,
+            'avg_memory_delta_mb': sum(v['memory_delta_mb'] for v in recent_validations) / len(recent_validations) if recent_validations else 0
         }
     
     return {
         'cached_engines': len(_engine_cache),
+        'current_memory_mb': round(current_memory, 2),
         'engine_details': stats,
         'total_moves_computed': sum(_engine_stats['move_counts'].values()),
-        'total_computation_time_ms': round(sum(_engine_stats['total_compute_time'].values()) * 1000, 2)
+        'total_computation_time_ms': round(sum(_engine_stats['total_compute_time'].values()) * 1000, 2),
+        'validation_summary': validation_summary
     }
 
 
@@ -258,3 +409,10 @@ def predict_move_with_validation_logging(fen_string: str, level: int = 1500, nod
         response_time = (time.time() - start_time) * 1000
         validation_logger.error(f"MOVE_ERROR: Level={level}, Error={str(e)}, ResponseTime={response_time:.2f}ms, EngineType={engine_type}")
         raise
+
+# Initialize engines on startup if environment variable is set
+if os.environ.get("WARM_ENGINES_ON_STARTUP", "false").lower() == "true":
+    try:
+        warm_engines()
+    except Exception as e:
+        logger.warning(f"Failed to warm engines on startup: {e}")
