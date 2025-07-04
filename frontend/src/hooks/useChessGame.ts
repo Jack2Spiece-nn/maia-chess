@@ -2,8 +2,11 @@ import { useState, useCallback } from 'react';
 import { Chess } from 'chess.js';
 import { GameState, GameStatus, PlayerColor } from '../types/game';
 import { apiService } from '../services/api';
+import { usePerformanceMonitor } from './usePerformanceMonitor';
 
 export const useChessGame = () => {
+  const { trackApiCall } = usePerformanceMonitor();
+  
   const [gameState, setGameState] = useState<GameState>(() => ({
     chess: new Chess(),
     gameStatus: 'waiting',
@@ -88,7 +91,11 @@ export const useChessGame = () => {
     setError(null);
 
     try {
-      const response = await apiService.getMove(chess.fen(), gameState.aiLevel, gameState.aiNodes);
+      // Track API call performance
+      const response = await trackApiCall(
+        apiService.getMove(chess.fen(), gameState.aiLevel, gameState.aiNodes),
+        'move'
+      );
       
       // Check if response contains an error
       if (!response || !response.move) {
@@ -116,6 +123,8 @@ export const useChessGame = () => {
         capturedPieces,
         lastMove: { from: aiMove.from, to: aiMove.to },
       }));
+
+      console.log(`[Game] AI move completed: ${aiMove.san}, Level: ${gameState.aiLevel}, Nodes: ${gameState.aiNodes}`);
 
     } catch (err) {
       console.error('AI move error:', err);
@@ -148,7 +157,7 @@ export const useChessGame = () => {
         isPlayerTurn: true,
       }));
     }
-  }, [gameState.aiLevel, gameState.aiNodes, updateGameStatus, getCapturedPieces]);
+  }, [gameState.aiLevel, gameState.aiNodes, updateGameStatus, getCapturedPieces, trackApiCall]);
 
   const startNewGame = useCallback((playerColor: PlayerColor = 'white', aiRating: number = 1500) => {
     const chess = new Chess();
