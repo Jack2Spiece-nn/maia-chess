@@ -102,6 +102,11 @@ export const useChessGame = () => {
         throw new Error(`AI failed to generate move: ${response ? JSON.stringify(response) : 'No response'}`);
       }
       
+      // Log engine type for validation if available
+      if ((response as any).engine_type) {
+        console.log(`[VALIDATION] ENGINE_TYPE_RECEIVED: ${(response as any).engine_type}`);
+      }
+      
       // Verify the move is valid
       const aiChess = new Chess(chess.fen());
       const aiMove = aiChess.move(response.move);

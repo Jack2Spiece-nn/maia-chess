@@ -1,16 +1,19 @@
 #!/usr/bin/env python3
 """
-Maia Chess Engine
+Maia Chess Engine Interface
 
-Core module for loading and managing Maia chess models.
-Provides functionality for model caching, move prediction, and FEN processing.
+Provides an interface to the Maia chess models using LC0 or fallback engines.
+Enhanced with comprehensive validation logging for diagnostic purposes.
 """
 
 import os
 import subprocess
+import tempfile
 import time
 import logging
-from functools import lru_cache
+import random
+from threading import Lock
+from typing import Dict, Any, Tuple
 
 # TensorFlow is optional for future upgrades – import but don't fail hard.
 # Note: TensorFlow is currently not used, so we're commenting it out to avoid
@@ -22,6 +25,20 @@ from functools import lru_cache
 
 import chess
 import chess.engine  # type: ignore
+import gzip
+
+# Configure validation logger
+validation_logger = logging.getLogger('maia_validation')
+validation_logger.setLevel(logging.INFO)
+if not validation_logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s:%(name)s: %(message)s')
+    handler.setFormatter(formatter)
+    validation_logger.addHandler(handler)
+
+# Enhanced logging for engine performance
+engine_logger = logging.getLogger('maia_engine')
+engine_logger.setLevel(logging.INFO)
 
 # Directory that stores the official Maia LC0 weight files shipped with the repo
 _WEIGHTS_DIRS = [
@@ -203,3 +220,41 @@ def _shutdown_engines():
         except Exception:  # pragma: no cover
             pass
     _engine_cache.clear()
+
+
+def _check_lc0_availability() -> bool:
+    """Check if LC0 engine is available in the system."""
+    try:
+        lc0_path = os.environ.get("LC0_PATH", "lc0")
+        result = subprocess.run([lc0_path, "--help"], 
+                              capture_output=True, 
+                              text=True, 
+                              timeout=5)
+        return result.returncode == 0
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
+def predict_move_with_validation_logging(fen_string: str, level: int = 1500, nodes: int = 1) -> Tuple[str, str]:
+    """Enhanced move prediction with comprehensive validation logging."""
+    import time
+    
+    start_time = time.time()
+    
+    # Log engine availability check
+    engine_type = "LC0" if _check_lc0_availability() else "RANDOM_FALLBACK"
+    validation_logger.info(f"ENGINE_CHECK: Level={level}, Type={engine_type}, Nodes={nodes}")
+    
+    # Track move quality indicators
+    try:
+        move = predict_move(fen_string, level, nodes)
+        response_time = (time.time() - start_time) * 1000
+        
+        # Log performance and quality metrics
+        validation_logger.info(f"MOVE_QUALITY: Level={level}, Move={move}, ResponseTime={response_time:.2f}ms, EngineType={engine_type}")
+        
+        return move, engine_type
+    except Exception as e:
+        response_time = (time.time() - start_time) * 1000
+        validation_logger.error(f"MOVE_ERROR: Level={level}, Error={str(e)}, ResponseTime={response_time:.2f}ms, EngineType={engine_type}")
+        raise
