@@ -34,21 +34,23 @@ export const usePerformanceMonitor = () => {
         return;
       }
 
-      // Simple network speed test using a small image
+      // Test network connectivity by attempting to fetch the API base URL
       const startTime = performance.now();
-      const img = new Image();
       
-      img.onload = () => {
-        const loadTime = performance.now() - startTime;
-        const status = loadTime > 2000 ? 'slow' : 'online';
-        setMetrics(prev => ({ ...prev, networkStatus: status }));
-      };
-      
-      img.onerror = () => {
-        setMetrics(prev => ({ ...prev, networkStatus: 'offline' }));
-      };
-      
-      img.src = '/favicon.ico?' + Math.random(); // Cache bust
+      // Use a simple fetch request to test connectivity
+      fetch(window.location.origin, { 
+        method: 'HEAD',
+        cache: 'no-cache',
+        mode: 'no-cors' // Avoid CORS issues
+      })
+        .then(() => {
+          const loadTime = performance.now() - startTime;
+          const status = loadTime > 3000 ? 'slow' : 'online';
+          setMetrics(prev => ({ ...prev, networkStatus: status }));
+        })
+        .catch(() => {
+          setMetrics(prev => ({ ...prev, networkStatus: 'offline' }));
+        });
     };
 
     updateNetworkStatus();
