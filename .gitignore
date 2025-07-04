@@ -7,6 +7,14 @@ __pycache__/
 *$py.class
 reports/overleaf
 
+# Node.js dependencies
+node_modules/
+
+# Vite cache and temporary files
+.vite/
+**/node_modules/.vite/
+**/node_modules/.vite/deps_temp_*/
+
 # C extensions
 *.so
 
