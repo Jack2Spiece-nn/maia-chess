@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Chessboard } from 'react-chessboard';
 import { useChessGame } from '../hooks/useChessGame';
 import { useDeviceType } from '../hooks/useDeviceType';
 import { useChessSound } from '../hooks/useSound';
+import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
+import { useHapticFeedback } from '../hooks/useHapticFeedback';
 import { GameControls } from './GameControls';
 import { GameStatus } from './GameStatus';
 import { MoveHistory } from './MoveHistory';
 import { AiSettings } from './AiSettings';
 import { SoundSettings } from './SoundSettings';
+import { LoadingState } from './LoadingState';
 import { clsx } from 'clsx';
 
 export const ChessGame: React.FC = () => {
@@ -24,11 +27,22 @@ export const ChessGame: React.FC = () => {
 
   const { isMobile, isTablet, isTouch, orientation } = useDeviceType();
   const { playSound } = useChessSound();
+  const { metrics, trackApiCall, measureTouchLatency, startMonitoring, isMonitoring } = usePerformanceMonitor();
+  const haptic = useHapticFeedback();
+  
   const [lastMove, setLastMove] = useState<string | null>(null);
   const [capturedPiece, setCapturedPiece] = useState<boolean>(false);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
   const [boardFlipped, setBoardFlipped] = useState<boolean>(false);
+  const [showPerformanceMetrics, setShowPerformanceMetrics] = useState<boolean>(false);
+
+  // Start performance monitoring on mobile devices
+  useEffect(() => {
+    if (isMobile && !isMonitoring) {
+      startMonitoring();
+    }
+  }, [isMobile, isMonitoring, startMonitoring]);
 
   const onDrop = (sourceSquare: string, targetSquare: string) => {
     // Clear selection when using drag-drop
@@ -44,6 +58,9 @@ export const ChessGame: React.FC = () => {
   };
 
   const handleMove = (sourceSquare: string, targetSquare: string) => {
+    // Measure touch latency for mobile performance tracking
+    const endTouchMeasurement = isMobile ? measureTouchLatency('chess-move') : null;
+    
     // Check if this is a capture move
     const targetPiece = gameState.chess.get(targetSquare as any);
     const isCapture = targetPiece !== null;
@@ -53,12 +70,17 @@ export const ChessGame: React.FC = () => {
       const success = makeMove(sourceSquare, targetSquare);
       
       if (success) {
-        // Play appropriate sound
+        // End touch measurement
+        if (endTouchMeasurement) endTouchMeasurement();
+        
+        // Haptic feedback for mobile
         if (isCapture) {
+          haptic.pieceCapture();
           playSound('capture');
           setCapturedPiece(true);
           setTimeout(() => setCapturedPiece(false), 600);
         } else {
+          haptic.pieceMove();
           playSound('move');
         }
         
@@ -68,16 +90,22 @@ export const ChessGame: React.FC = () => {
         // Check for check or checkmate after move
         setTimeout(() => {
           if (gameState.chess.isCheckmate()) {
+            haptic.checkmate();
             playSound('checkmate');
           } else if (gameState.chess.isCheck()) {
+            haptic.check();
             playSound('check');
           }
         }, 100);
         
         return true;
+      } else {
+        // Failed move - error haptic feedback
+        haptic.error();
       }
     } catch (error) {
       console.error('Move failed:', error);
+      haptic.error();
     }
 
     return false;
@@ -85,11 +113,13 @@ export const ChessGame: React.FC = () => {
 
   const handleNewGame = (playerColor: any, aiLevel: number) => {
     startNewGame(playerColor, aiLevel);
+    haptic.gameStart();
     playSound('gameStart');
   };
 
   const handleResign = () => {
     resignGame();
+    haptic.gameEnd();
     playSound('gameEnd');
   };
 
@@ -130,6 +160,7 @@ export const ChessGame: React.FC = () => {
       
       // If the move failed and we clicked on our own piece, select it
       if (!success && piece && piece.color === gameState.chess.turn()) {
+        haptic.pieceSelect();
         setSelectedSquare(square);
         // Get possible moves for the selected piece
         const moves = gameState.chess.moves({ square: square as any, verbose: true });
@@ -138,6 +169,7 @@ export const ChessGame: React.FC = () => {
     } else {
       // No square selected yet - select if it's our piece
       if (piece && piece.color === gameState.chess.turn()) {
+        haptic.pieceSelect();
         setSelectedSquare(square);
         // Get possible moves for the selected piece
         const moves = gameState.chess.moves({ square: square as any, verbose: true });
@@ -267,16 +299,63 @@ export const ChessGame: React.FC = () => {
 
           {gameState.isThinking && (
             <div className="mt-4 text-center">
-              <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 rounded-lg px-4 py-2 shadow-lg">
-                <div className="animate-spin h-4 w-4 border-2 border-purple-400 border-t-transparent rounded-full"></div>
-                <span className="text-purple-300 text-sm font-medium">
-                  {isMobile ? 'Maia analyzing...' : 'Maia is analyzing the position...'}
-                </span>
-              </div>
+              <LoadingState
+                type="thinking"
+                message={metrics.networkStatus === 'offline' ? 'Connecting to Maia...' : undefined}
+                showDetails={showPerformanceMetrics && isMobile}
+                progress={metrics.apiResponseTime ? Math.min(90, (Date.now() % 3000) / 3000 * 100) : undefined}
+              />
             </div>
           )}
         </div>
       </div>
+
+      {/* Mobile Performance/Network Status */}
+      {isMobile && (
+        <div className="fixed bottom-4 right-4 z-50 flex flex-col space-y-2">
+          {/* Network status indicator */}
+          <div className={clsx(
+            "px-2 py-1 rounded-full text-xs font-medium transition-all duration-300",
+            metrics.networkStatus === 'online' && "bg-green-500/20 text-green-300 border border-green-500/30",
+            metrics.networkStatus === 'slow' && "bg-yellow-500/20 text-yellow-300 border border-yellow-500/30",
+            metrics.networkStatus === 'offline' && "bg-red-500/20 text-red-300 border border-red-500/30 animate-pulse"
+          )}>
+            {metrics.networkStatus === 'online' && '●'}
+            {metrics.networkStatus === 'slow' && '◐'}
+            {metrics.networkStatus === 'offline' && '○'}
+          </div>
+          
+          {/* Performance metrics toggle */}
+          <button
+            onClick={() => setShowPerformanceMetrics(!showPerformanceMetrics)}
+            className="w-6 h-6 bg-slate-700/50 border border-slate-500/30 rounded-full flex items-center justify-center text-xs text-slate-400 hover:text-slate-300"
+          >
+            ⊕
+          </button>
+          
+          {/* Performance metrics panel */}
+          {showPerformanceMetrics && (
+            <div className="bg-slate-800/90 border border-slate-600/50 rounded-lg p-2 text-xs text-slate-300 backdrop-blur-sm">
+              <div className="space-y-1">
+                <div>FPS: {metrics.renderFPS || '--'}</div>
+                <div>API: {metrics.lastMoveTime ? `${metrics.lastMoveTime.toFixed(0)}ms` : '--'}</div>
+                <div>Touch: {metrics.touchLatency ? `${metrics.touchLatency.toFixed(0)}ms` : '--'}</div>
+                <div>Net: {metrics.networkStatus}</div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Offline Mode Notice */}
+      {metrics.networkStatus === 'offline' && (
+        <div className="fixed top-20 left-4 right-4 z-50 bg-red-500/20 border border-red-500/30 rounded-lg p-3 text-red-300 text-sm">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-red-400 rounded-full animate-pulse"></div>
+            <span>You're offline. Some features may not work.</span>
+          </div>
+        </div>
+      )}
 
       {/* Game Controls & Info */}
       <div className={clsx(
