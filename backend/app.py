@@ -177,10 +177,17 @@ def get_move():
         # Log the request
         logger.info(f"Move request: FEN={fen[:20]}..., Level={level}, Nodes={nodes}")
         
-        # Get the predicted move with performance tracking
+        # Get the predicted move with performance tracking and validation logging
         move_start_time = time.time()
         move, engine_was_cached = predict_move_with_metrics(fen, level, nodes)
         move_time = time.time() - move_start_time
+        
+        # Additional validation logging
+        try:
+            from maia_engine import predict_move_with_validation_logging
+            _, engine_type = predict_move_with_validation_logging(fen, level, nodes)
+        except ImportError:
+            engine_type = "UNKNOWN"
         
         response_time = time.time() - start_time
         
@@ -195,7 +202,8 @@ def get_move():
             'nodes': nodes,
             'response_time_ms': round(response_time * 1000, 2),
             'engine_cached': engine_was_cached,
-            'computation_time_ms': round(move_time * 1000, 2)
+            'computation_time_ms': round(move_time * 1000, 2),
+            'engine_type': engine_type  # For validation purposes
         })
         
     except FileNotFoundError as e:

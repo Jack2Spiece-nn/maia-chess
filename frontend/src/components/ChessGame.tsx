@@ -5,6 +5,7 @@ import { useDeviceType } from '../hooks/useDeviceType';
 import { useChessSound } from '../hooks/useSound';
 import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
 import { useHapticFeedback } from '../hooks/useHapticFeedback';
+import { useValidation } from '../hooks/useValidation';
 import { GameControls } from './GameControls';
 import { GameStatus } from './GameStatus';
 import { MoveHistory } from './MoveHistory';
@@ -29,6 +30,7 @@ export const ChessGame: React.FC = () => {
   const { playSound } = useChessSound();
   const { metrics, trackApiCall, measureTouchLatency, startMonitoring, isMonitoring } = usePerformanceMonitor();
   const haptic = useHapticFeedback();
+  const { logAIBehaviorFeedback, logConnectionQuality, logGameSession } = useValidation();
   
   const [lastMove, setLastMove] = useState<string | null>(null);
   const [capturedPiece, setCapturedPiece] = useState<boolean>(false);
@@ -36,6 +38,9 @@ export const ChessGame: React.FC = () => {
   const [possibleMoves, setPossibleMoves] = useState<string[]>([]);
   const [boardFlipped, setBoardFlipped] = useState<boolean>(false);
   const [showPerformanceMetrics, setShowPerformanceMetrics] = useState<boolean>(false);
+  const [gameStartTime, setGameStartTime] = useState<number>(Date.now());
+  const [moveCount, setMoveCount] = useState<number>(0);
+  const [lastEngineType, setLastEngineType] = useState<string>('UNKNOWN');
 
   // Start performance monitoring on mobile devices
   useEffect(() => {
@@ -43,6 +48,32 @@ export const ChessGame: React.FC = () => {
       startMonitoring();
     }
   }, [isMobile, isMonitoring, startMonitoring]);
+
+  // Track connection quality when metrics change
+  useEffect(() => {
+    if (metrics.lastMoveTime && metrics.networkStatus) {
+      logConnectionQuality(metrics.lastMoveTime, metrics.networkStatus);
+    }
+  }, [metrics.lastMoveTime, metrics.networkStatus, logConnectionQuality]);
+
+  // Track game completion for validation
+  useEffect(() => {
+    if (gameState.gameStatus !== 'playing' && gameState.gameStatus !== 'waiting' && moveCount > 0) {
+      const sessionDuration = Date.now() - gameStartTime;
+      logGameSession({
+        duration: sessionDuration,
+        moveCount,
+        aiLevel: gameState.aiLevel,
+        completionReason: gameState.gameStatus as any,
+        engineType: lastEngineType
+      });
+
+      // Log AI behavior feedback after meaningful games
+      if (moveCount >= 5) {
+        logAIBehaviorFeedback(moveCount, gameState.aiLevel);
+      }
+    }
+  }, [gameState.gameStatus, moveCount, gameStartTime, gameState.aiLevel, logGameSession, logAIBehaviorFeedback]);
 
   const onDrop = (sourceSquare: string, targetSquare: string) => {
     // Clear selection when using drag-drop
@@ -86,6 +117,7 @@ export const ChessGame: React.FC = () => {
         
         setLastMove(`${sourceSquare}${targetSquare}`);
         setTimeout(() => setLastMove(null), 800);
+        setMoveCount(prev => prev + 1);
 
         // Check for check or checkmate after move
         setTimeout(() => {
@@ -115,6 +147,8 @@ export const ChessGame: React.FC = () => {
     startNewGame(playerColor, aiLevel);
     haptic.gameStart();
     playSound('gameStart');
+    setGameStartTime(Date.now());
+    setMoveCount(0);
   };
 
   const handleResign = () => {
