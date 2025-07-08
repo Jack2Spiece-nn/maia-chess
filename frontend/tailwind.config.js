@@ -81,6 +81,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
+        chess: ['Orbitron', 'Inter', 'system-ui', 'sans-serif'],
       },
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
@@ -88,13 +89,13 @@ export default {
         'slide-in': 'slideIn 0.4s ease-out',
         'bounce-in': 'bounceIn 0.6s ease-out',
         'pulse-glow': 'pulseGlow 2s infinite',
-        'float': 'float 3s ease-in-out infinite',
+        'float': 'float 6s ease-in-out infinite',
         'wiggle': 'wiggle 1s ease-in-out infinite',
         'chess-move': 'chessMove 0.3s ease-out',
         'capture-effect': 'captureEffect 0.5s ease-out',
         // Enhanced animations
-        'gradient-shift': 'gradientShift 3s ease-in-out infinite',
-        'particle-float': 'particleFloat 4s ease-in-out infinite',
+        'gradient-shift': 'gradientShift 8s ease-in-out infinite',
+        'particle-float': 'particleFloat 12s ease-in-out infinite',
         'theme-transition': 'themeTransition 0.3s ease-out',
         'shimmer': 'shimmer 2s infinite',
         'glow-pulse': 'glowPulse 1.5s ease-in-out infinite',
@@ -103,8 +104,20 @@ export default {
         'rotate-in': 'rotateIn 0.4s ease-out',
         'chess-piece-hover': 'chessPieceHover 0.2s ease-out',
         'board-highlight': 'boardHighlight 0.3s ease-out',
+        'neon-glow': 'neonGlow 2s ease-in-out infinite',
+        'morphing-gradient': 'morphingGradient 20s ease-in-out infinite',
+        'board-shimmer': 'boardShimmer 3s ease-in-out infinite',
+        'sparkle': 'sparkle 1.5s ease-in-out infinite',
       },
       keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        slideUp: {
+          '0%': { opacity: '0', transform: 'translateY(20px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
         slideIn: {
           '0%': { opacity: '0', transform: 'translateX(-20px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
@@ -120,8 +133,9 @@ export default {
           '50%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.8)' },
         },
         float: {
-          '0%, 100%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-10px)' },
+          '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+          '33%': { transform: 'translateY(-20px) rotate(2deg)' },
+          '66%': { transform: 'translateY(10px) rotate(-1deg)' },
         },
         wiggle: {
           '0%, 100%': { transform: 'rotate(-3deg)' },
@@ -139,13 +153,19 @@ export default {
         },
         // Enhanced keyframes
         gradientShift: {
-          '0%, 100%': { backgroundPosition: '0% 50%' },
-          '50%': { backgroundPosition: '100% 50%' },
+          '0%, 100%': { 
+            backgroundPosition: '0% 50%',
+            transform: 'rotate(0deg)',
+          },
+          '50%': { 
+            backgroundPosition: '100% 50%',
+            transform: 'rotate(1deg)',
+          },
         },
         particleFloat: {
           '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
-          '33%': { transform: 'translateY(-20px) rotate(120deg)' },
-          '66%': { transform: 'translateY(10px) rotate(240deg)' },
+          '33%': { transform: 'translateY(-30px) rotate(120deg)' },
+          '66%': { transform: 'translateY(15px) rotate(240deg)' },
         },
         themeTransition: {
           '0%': { opacity: '0', transform: 'scale(0.95)' },
@@ -156,8 +176,14 @@ export default {
           '100%': { transform: 'translateX(100%)' },
         },
         glowPulse: {
-          '0%, 100%': { boxShadow: '0 0 5px rgba(99, 102, 241, 0.3)' },
-          '50%': { boxShadow: '0 0 20px rgba(99, 102, 241, 0.8)' },
+          '0%, 100%': { 
+            boxShadow: '0 0 5px rgba(99, 102, 241, 0.3)',
+            transform: 'scale(1)',
+          },
+          '50%': { 
+            boxShadow: '0 0 20px rgba(99, 102, 241, 0.8)',
+            transform: 'scale(1.02)',
+          },
         },
         slideDown: {
           '0%': { opacity: '0', transform: 'translateY(-10px)' },
@@ -172,13 +198,52 @@ export default {
           '100%': { opacity: '1', transform: 'rotate(0deg) scale(1)' },
         },
         chessPieceHover: {
-          '0%': { transform: 'scale(1)' },
-          '50%': { transform: 'scale(1.05)' },
-          '100%': { transform: 'scale(1.02)' },
+          '0%': { transform: 'scale(1) translateY(0px)' },
+          '50%': { transform: 'scale(1.08) translateY(-4px)' },
+          '100%': { transform: 'scale(1.05) translateY(-2px)' },
         },
         boardHighlight: {
           '0%': { opacity: '0', transform: 'scale(0.9)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        neonGlow: {
+          '0%, 100%': { 
+            boxShadow: '0 0 5px rgba(168, 85, 247, 0.3), 0 0 10px rgba(168, 85, 247, 0.2), 0 0 15px rgba(168, 85, 247, 0.1)',
+          },
+          '50%': { 
+            boxShadow: '0 0 10px rgba(168, 85, 247, 0.6), 0 0 20px rgba(168, 85, 247, 0.4), 0 0 30px rgba(168, 85, 247, 0.2)',
+          },
+        },
+        morphingGradient: {
+          '0%': { 
+            background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
+          },
+          '25%': { 
+            background: 'linear-gradient(45deg, #f093fb 0%, #f5576c 100%)',
+          },
+          '50%': { 
+            background: 'linear-gradient(45deg, #4facfe 0%, #00f2fe 100%)',
+          },
+          '75%': { 
+            background: 'linear-gradient(45deg, #43e97b 0%, #38f9d7 100%)',
+          },
+          '100%': { 
+            background: 'linear-gradient(45deg, #667eea 0%, #764ba2 100%)',
+          },
+        },
+        boardShimmer: {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        sparkle: {
+          '0%, 100%': { 
+            opacity: '0', 
+            transform: 'scale(0) rotate(0deg)',
+          },
+          '50%': { 
+            opacity: '1', 
+            transform: 'scale(1) rotate(180deg)',
+          },
         },
       },
       screens: {
@@ -195,6 +260,17 @@ export default {
       },
       backdropBlur: {
         'xs': '2px',
+      },
+      borderWidth: {
+        '3': '3px',
+      },
+      blur: {
+        'xs': '2px',
+      },
+      boxShadow: {
+        'glow': '0 0 20px rgba(168, 85, 247, 0.3)',
+        'glow-lg': '0 0 40px rgba(168, 85, 247, 0.4)',
+        'inner-glow': 'inset 0 2px 4px rgba(255, 255, 255, 0.1)',
       },
     },
   },
