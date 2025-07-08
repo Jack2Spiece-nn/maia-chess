@@ -50,11 +50,11 @@
     font-family: Inter, system-ui, sans-serif;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
   body {
     margin: 0;
-    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4c1d95 100%);
     min-height: 100vh;
     overscroll-behavior: none;
     -webkit-overflow-scrolling: touch;
@@ -62,6 +62,85 @@
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
+    transition: background 0.3s ease;
+  }
+
+  /* Light theme backgrounds */
+  .theme-light body {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 30%, #bae6fd 70%, #7dd3fc 100%);
+  }
+
+  /* Dark theme backgrounds */
+  .theme-dark body {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 30%, #4c1d95 70%, #581c87 100%);
+  }
+
+  /* Enhanced background patterns */
+  .theme-light body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(147, 51, 234, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 60%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    animation: gradientShift 8s ease-in-out infinite;
+    background-size: 200% 200%;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .theme-dark body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.1) 0%, transparent 50%),
+      radial-gradient(circle at 40% 60%, rgba(34, 197, 94, 0.05) 0%, transparent 50%);
+    animation: gradientShift 8s ease-in-out infinite;
+    background-size: 200% 200%;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Particle effects */
+  .theme-light body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 2px 2px, rgba(59, 130, 246, 0.1) 1px, transparent 0),
+      radial-gradient(circle at 20px 20px, rgba(147, 51, 234, 0.05) 1px, transparent 0);
+    background-size: 60px 60px, 100px 100px;
+    animation: particleFloat 10s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .theme-dark body::after {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+      radial-gradient(circle at 2px 2px, rgba(99, 102, 241, 0.1) 1px, transparent 0),
+      radial-gradient(circle at 20px 20px, rgba(168, 85, 247, 0.05) 1px, transparent 0);
+    background-size: 60px 60px, 100px 100px;
+    animation: particleFloat 10s linear infinite;
+    pointer-events: none;
+    z-index: -1;
   }
 
   /* iOS Safari fixes */
@@ -91,8 +170,7 @@
 
 @layer components {
   .chess-board {
-    border-radius: 12px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
     overflow: hidden;
     touch-action: none;
     -webkit-user-drag: none;
@@ -101,6 +179,61 @@
     -o-user-drag: none;
     user-drag: none;
     background: white;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theme-light .chess-board {
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.1),
+      0 0 0 1px rgba(59, 130, 246, 0.1),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .theme-dark .chess-board {
+    box-shadow: 
+      0 25px 50px -12px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(168, 85, 247, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .chess-board::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: 18px;
+    padding: 2px;
+    background: linear-gradient(135deg, 
+      transparent 0%, 
+      rgba(255, 255, 255, 0.1) 50%, 
+      transparent 100%
+    );
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: subtract;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: subtract;
+    pointer-events: none;
+  }
+
+  .chess-board:hover {
+    transform: translateY(-2px);
+  }
+
+  .theme-light .chess-board:hover {
+    box-shadow: 
+      0 32px 64px -12px rgba(0, 0, 0, 0.15),
+      0 0 0 1px rgba(59, 130, 246, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .theme-dark .chess-board:hover {
+    box-shadow: 
+      0 32px 64px -12px rgba(0, 0, 0, 0.4),
+      0 0 0 1px rgba(168, 85, 247, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 
   /* Chess board container - improved responsive layout */
@@ -213,11 +346,22 @@
   }
   
   .game-panel {
-    @apply backdrop-blur-md rounded-2xl shadow-2xl p-4 md:p-6;
+    @apply backdrop-blur-md rounded-2xl shadow-2xl p-4 md:p-6 transition-all duration-300;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(233, 213, 255, 0.3);
+  }
+
+  .theme-light .game-panel {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05), 0 0 0 1px rgba(59, 130, 246, 0.05);
+  }
+
+  .theme-dark .game-panel {
     background: rgba(255, 255, 255, 0.98);
     border: 1px solid rgba(233, 213, 255, 0.3);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(168, 85, 247, 0.1);
   }
 
   .game-panel-mobile {
@@ -229,11 +373,19 @@
   }
   
   .button-primary {
-    @apply bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
+    @apply font-semibold py-3 px-6 rounded-xl transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     border: none;
     outline: none;
+  }
+
+  .theme-light .button-primary {
+    @apply bg-gradient-to-r from-primary-500 to-secondary-500 hover:from-primary-600 hover:to-secondary-600 text-white;
+  }
+
+  .theme-dark .button-primary {
+    @apply bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white;
   }
 
   .button-primary-mobile {
@@ -249,15 +401,29 @@
   }
   
   .button-secondary {
-    @apply hover:bg-white text-gray-700 font-medium py-2.5 px-5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg;
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid rgb(233, 213, 255);
+    @apply font-medium py-2.5 px-5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
     min-height: 48px;
   }
+
+  .theme-light .button-secondary {
+    @apply hover:bg-white text-gray-700;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgb(59, 130, 246, 0.2);
+  }
+
+  .theme-light .button-secondary:hover {
+    border-color: rgb(59, 130, 246, 0.4);
+  }
+
+  .theme-dark .button-secondary {
+    @apply hover:bg-white text-gray-700;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgb(233, 213, 255);
+  }
   
-  .button-secondary:hover {
+  .theme-dark .button-secondary:hover {
     border-color: rgb(221, 193, 253);
   }
 
@@ -312,6 +478,118 @@
 
   .piece-hover {
     @apply transform transition-transform duration-150 hover:scale-110;
+  }
+
+  /* Enhanced chess piece animations */
+  .chess-piece {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+    position: relative;
+  }
+
+  .chess-piece:hover {
+    transform: scale(1.05) translateZ(0);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  }
+
+  .chess-piece::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 4px;
+    background: radial-gradient(ellipse, rgba(0, 0, 0, 0.2) 0%, transparent 70%);
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .chess-piece:hover::after {
+    opacity: 1;
+  }
+
+  /* Enhanced square highlighting */
+  .square-highlight {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .square-highlight::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .square-highlight:hover::before {
+    opacity: 1;
+  }
+
+  /* Move indication styles */
+  .move-dot {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20%;
+    height: 20%;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.3);
+    animation: boardHighlight 0.3s ease-out;
+  }
+
+  .capture-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 3px solid rgba(255, 0, 0, 0.6);
+    border-radius: 50%;
+    animation: boardHighlight 0.3s ease-out;
+  }
+
+  .last-move-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 215, 0, 0.4);
+    border-radius: 4px;
+    animation: boardHighlight 0.3s ease-out;
+  }
+
+  .selection-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(65, 105, 225, 0.4);
+    border: 2px solid rgba(65, 105, 225, 0.8);
+    border-radius: 4px;
+    animation: boardHighlight 0.3s ease-out;
+  }
+
+  .check-highlight {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 68, 68, 0.4);
+    border: 2px solid rgba(255, 68, 68, 0.8);
+    border-radius: 4px;
+    animation: glow-pulse 1s ease-in-out infinite;
   }
 
   .touch-feedback {

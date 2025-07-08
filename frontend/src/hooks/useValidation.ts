@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react';
 
-interface ValidationMetrics {
+export interface ValidationMetrics {
   // Engine Quality
   engineTypeDistribution: Record<string, number>;
   averageSessionDurationByEngine: Record<string, number>;

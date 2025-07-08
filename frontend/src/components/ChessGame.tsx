@@ -28,7 +28,7 @@ export const ChessGame: React.FC = () => {
 
   const { isMobile, isTablet, isTouch, orientation } = useDeviceType();
   const { playSound } = useChessSound();
-  const { metrics, trackApiCall, measureTouchLatency, startMonitoring, isMonitoring } = usePerformanceMonitor();
+  const { metrics, measureTouchLatency, startMonitoring, isMonitoring } = usePerformanceMonitor();
   const haptic = useHapticFeedback();
   const { logAIBehaviorFeedback, logConnectionQuality, logGameSession } = useValidation();
   
@@ -40,7 +40,7 @@ export const ChessGame: React.FC = () => {
   const [showPerformanceMetrics, setShowPerformanceMetrics] = useState<boolean>(false);
   const [gameStartTime, setGameStartTime] = useState<number>(Date.now());
   const [moveCount, setMoveCount] = useState<number>(0);
-  const [lastEngineType, setLastEngineType] = useState<string>('UNKNOWN');
+  const [lastEngineType] = useState<string>('UNKNOWN');
 
   // Start performance monitoring on mobile devices
   useEffect(() => {
@@ -281,7 +281,7 @@ export const ChessGame: React.FC = () => {
               </button>
             </div>
             <div className={clsx(
-              "w-full",
+              "w-full chess-board",
               isMobile ? "chess-board-wrapper-mobile" : "chess-board-wrapper"
             )}>
               <Chessboard
@@ -296,16 +296,20 @@ export const ChessGame: React.FC = () => {
                   !isTouch // Disable dragging on touch devices
                 }
                 customBoardStyle={{
-                  borderRadius: '12px',
-                  boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+                  borderRadius: '16px',
+                  boxShadow: 'none',
                 }}
                 customDarkSquareStyle={{ 
                   backgroundColor: '#b58863',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 customLightSquareStyle={{ 
                   backgroundColor: '#f0d9b5',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  position: 'relative',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 }}
                 customDropSquareStyle={{
                   boxShadow: 'inset 0 0 1px 6px rgba(255,255,255,0.75)'
@@ -313,17 +317,26 @@ export const ChessGame: React.FC = () => {
                 customSquareStyles={{
                   ...(selectedSquare && {
                     [selectedSquare]: {
-                      backgroundColor: 'rgba(255, 255, 0, 0.4)',
-                      border: '2px solid #FFFF00'
+                      backgroundColor: 'rgba(65, 105, 225, 0.4)',
+                      border: '2px solid rgba(65, 105, 225, 0.8)',
+                      borderRadius: '4px',
+                      boxShadow: '0 0 0 1px rgba(65, 105, 225, 0.2)',
+                      position: 'relative',
                     }
                   }),
                   ...possibleMoves.reduce((acc, square) => ({
                     ...acc,
                     [square]: {
                       background: gameState.chess.get(square as any) 
-                        ? 'radial-gradient(circle, rgba(255,0,0,0.3) 85%, transparent 85%)'
-                        : 'radial-gradient(circle, rgba(0,0,0,0.2) 25%, transparent 25%)',
-                      cursor: 'pointer'
+                        ? 'radial-gradient(circle, rgba(255, 68, 68, 0.4) 85%, transparent 85%)'
+                        : 'radial-gradient(circle, rgba(0, 0, 0, 0.3) 25%, transparent 25%)',
+                      cursor: 'pointer',
+                      border: gameState.chess.get(square as any) 
+                        ? '2px solid rgba(255, 68, 68, 0.6)'
+                        : 'none',
+                      borderRadius: gameState.chess.get(square as any) ? '50%' : '0',
+                      transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      position: 'relative',
                     }
                   }), {})
                 }}

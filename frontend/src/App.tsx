@@ -1,26 +1,25 @@
 import { ChessGame } from './components/ChessGame';
 import { Header } from './components/Header';
 import { useDeviceType } from './hooks/useDeviceType';
+import { ThemeProvider } from './hooks/useTheme';
 import { clsx } from 'clsx';
 
 function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
   const { isMobile } = useDeviceType();
 
   return (
     <div className={clsx(
-      "min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900",
-      "relative overflow-x-hidden",
+      "min-h-screen relative overflow-x-hidden transition-all duration-300",
       isMobile && "min-h-screen"
     )}>
-      {/* Enhanced Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent"></div>
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }}></div>
-      </div>
-      
       <Header />
       
       <main className={clsx(
