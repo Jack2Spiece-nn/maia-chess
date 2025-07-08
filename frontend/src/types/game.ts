@@ -21,6 +21,9 @@ export interface GameState {
     from: string;
     to: string;
   } | null;
+  isGameOver: boolean;
+  winner?: PlayerColor | null;
+  gameResult?: 'checkmate' | 'stalemate' | 'draw' | 'resigned' | null;
 }
 
 export interface MoveHistoryItem {
